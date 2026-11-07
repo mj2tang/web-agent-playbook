@@ -23,7 +23,7 @@ Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent or
 | Layer | Contents |
 |---|---|
 | **Agent team** | `orchestrator` · `system-architect` (design doc + frozen contract) · `ui-designer` (brief, tokens, component specs) · `frontend-worker` · `backend-worker` (each `isolation: worktree`) · `supervisor` · `security-reviewer` · `a11y-reviewer` · `code-reviewer` |
-| **Design skills** | `design-brief`, `design-tokens`, `component-spec`, `responsive-layout`, `accessibility-audit` (WCAG 2.2 AA), `visual-review`, `ux-copy` |
+| **Design skills** | `design-brief` (PRODUCT.md + DESIGN.md), `design-tokens`, `component-spec`, `design-critique` (scored 0-10 per dimension), `responsive-layout`, `accessibility-audit` (WCAG 2.2 AA), `visual-review`, `ux-copy` |
 | **Frontend skills** | `frontend-performance` (Core Web Vitals + JS budgets), `forms-and-validation` (one Zod schema client + server) |
 | **Backend skills** | `system-design-doc`, `api-contract`, `data-modeling`, `supabase-migrations`, `rls-policies`, `supabase-auth`, `edge-functions-vs-rpc`, `security-review` (OWASP), `observability` |
 | **Team and trust skills** | `orchestrate-team`, `feature-spec`, `worker-protocol`, `merge-train`, `decision-log`, `pause-and-resume`, `prove-it-works`, `encode-lesson`, `interrogate` (cross-model review), `plan-first`, `tdd-loop`, `verify-before-done`, `systematic-debugging`, `web-quality-gates` |

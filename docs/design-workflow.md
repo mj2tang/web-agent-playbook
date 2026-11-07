@@ -10,6 +10,7 @@ From "make it look good" to a shipped, accessible UI.
    - `responsive-layout`: no horizontal scroll at 320px; screenshots at 375/768/1280.
    - `accessibility-audit`: axe with zero serious/critical issues on every route in both themes, plus a keyboard-only pass.
    - `visual-review`: compare screenshots to the spec; snapshots change only with human approval.
+   - `design-critique`: the ui-designer scores the screenshots 0-10 per dimension against PRODUCT.md and DESIGN.md and lists the changes that close the biggest gaps (taste, where the gates above check rules).
    - `frontend-performance`: route JS and Core Web Vitals within `configs/gates.json`.
 
 ## Specialist skills that pair well

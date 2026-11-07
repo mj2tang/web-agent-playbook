@@ -35,3 +35,5 @@
 {"prompt": "Fix the typo in README.md", "expect": null}
 {"prompt": "What does the useActionState hook return?", "expect": null}
 {"prompt": "Rename the variable `x` to `count` in utils.ts", "expect": null}
+{"prompt": "Rate the new pricing page design honestly - what would make it a 10?", "expect": "design-critique"}
+{"prompt": "Before we build it, score this landing page plan on hierarchy, typography and colour", "expect": "design-critique"}
