@@ -12,4 +12,4 @@ description: Debug by reproduction and evidence - reproduce, isolate, form ranke
 5. **Fix** the root cause, with a test that failed before and passes now.
 6. After two failed fix attempts, stop and write up what you know instead of trying a third.
 
-Web suspects: server vs client component boundary, stale `.next` cache or dev server, hydration mismatch (dates, random IDs), RLS silently returning zero rows (not an error), the query running as `anon` because the session cookie wasn't refreshed in middleware, types generated before the last migration, a Playwright race (missing `await expect(...)`), and a dependency upgrade.
+Web suspects: server vs client component boundary, stale `.next` cache or dev server, hydration mismatch (dates, random IDs), RLS silently returning zero rows (not an error), the query running as `anon` because the session cookie wasn't refreshed in the proxy (`src/proxy.ts`, formerly middleware), types generated before the last migration, a Playwright race (missing `await expect(...)`), and a dependency upgrade.

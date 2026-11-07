@@ -14,7 +14,7 @@
 
 ## Layout
 - `src/app/` routes (server components by default) · `src/components/` shared UI · `src/styles/tokens.css` design tokens
-- `src/lib/supabase/` server/browser clients + middleware helper · `src/lib/server/` server-only code · `src/lib/contracts/` Zod schemas · `src/lib/database.types.ts` generated
+- `src/lib/supabase/` server/browser clients + session-refresh helper for `src/proxy.ts` · `src/lib/server/` server-only code · `src/lib/contracts/` Zod schemas · `src/lib/database.types.ts` generated
 - `supabase/migrations/` schema + RLS · `supabase/tests/` pgTAP · `supabase/seed.sql` local data
 - `tests/unit/` Vitest · `tests/e2e/` Playwright (+ axe, `@visual` screenshots)
 - `docs/design/` brief, system design, component specs · `docs/pipeline-map/` entry points and proof
@@ -26,6 +26,7 @@
 - Every server action and route handler validates input with the contract's Zod schema and calls `supabase.auth.getUser()` before acting.
 - Every table in `public` has RLS enabled, explicit policies per role and operation, and pgTAP tests for allow and deny.
 - Schema changes only through new migrations; never edit an applied one. Regenerate types in the same commit.
+- Next.js 16+: APIs differ from older versions (`proxy.ts` replaced `middleware.ts`). Read `node_modules/next/dist/docs/` before using an API you haven't checked.
 - Accessible by default: semantic HTML, labels, visible focus, axe clean, keyboard-only path works.
 - Commits: `T-<id>: <what>` for task work; `contract: ...` and `design: ...` for wave-0 work.
 

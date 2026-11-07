@@ -154,3 +154,39 @@ class TestSync(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNew(unittest.TestCase):
+    def test_new_layout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proj = Path(tmp) / "site"
+            run("new", str(proj), "--name", "Acme Notes")
+            for rel in ["AGENTS.md", "CLAUDE.md", "Makefile", "package.json", "next.config.ts", "tsconfig.json",
+                        "playwright.config.ts", "vitest.config.mts", "src/styles/tokens.css", "src/app/layout.tsx",
+                        "src/app/notes/actions.ts", "src/lib/supabase/server.ts", "src/proxy.ts",
+                        "src/lib/contracts/notes.ts", "supabase/config.toml", "supabase/tests/rls_enabled.test.sql",
+                        "supabase/tests/notes_rls.test.sql", "tests/e2e/a11y.spec.ts", ".github/workflows/ci.yml",
+                        ".claude/agents/supervisor.md", ".claude/hooks/guard.py", ".agents/skills/rls-policies/SKILL.md",
+                        ".codex/config.toml", "scripts/gates/check.sh", "docs/pipeline-map/routes.md",
+                        ".agents/web-playbook.lock.json"]:
+                self.assertTrue((proj / rel).exists(), rel)
+            self.assertFalse((proj / "AGENTS.web-playbook.md").exists())
+            self.assertFalse((proj / "playwright.playbook.config.ts").exists())
+            for rel in ["AGENTS.md", "package.json", "supabase/config.toml", "src/app/layout.tsx", "README.md",
+                        "Makefile", ".codex/config.toml"]:
+                self.assertNotRegex((proj / rel).read_text(), r"\{\{\w+\}\}", rel)  # unrendered placeholders
+            self.assertIn("BEGIN:nextjs-agent-rules", (proj / "AGENTS.md").read_text())
+            self.assertEqual(json.loads((proj / "package.json").read_text())["name"], "acme-notes")
+            self.assertIn('project_id = "acme-notes"', (proj / "supabase/config.toml").read_text())
+            settings = json.loads((proj / ".claude/settings.json").read_text())
+            self.assertIn("Bash(make db-check)", settings["permissions"]["allow"])
+            self.assertIn("PreToolUse", settings["hooks"])
+            self.assertIn(".audit/", (proj / ".gitignore").read_text())
+            log = subprocess.run(["git", "-C", str(proj), "log", "--oneline"], capture_output=True, text=True)
+            self.assertIn("Scaffold Acme Notes", log.stdout)
+
+    def test_new_refuses_non_empty_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "x").write_text("x")
+            p = subprocess.run([*PLAYBOOK, "new", tmp, "--name", "x"], capture_output=True, text=True)
+            self.assertEqual(p.returncode, 1)

@@ -291,7 +291,8 @@ def install_agent_setup(s: Scaffolder, mode: str, *, profiles: set[str], guardra
                                "Code loads the team rules.")
     else:
         s.write("CLAUDE.md", s.render((cfg / "CLAUDE.md").read_text()))
-        s.write("AGENTS.md", agents_md)
+        # `next dev` upserts this block into AGENTS.md; shipping it verbatim keeps a fresh checkout clean.
+        s.write("AGENTS.md", agents_md + "\n" + (ROOT / "templates/nextjs-agent-rules.md").read_text())
 
 
 def git(target: Path, *args: str) -> None:

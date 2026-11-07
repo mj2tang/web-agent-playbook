@@ -1,0 +1,78 @@
+/* Design tokens: the only place raw colour and size values live. Owned by the ui-designer (design-tokens skill).
+   Components use them through the Tailwind theme in src/app/globals.css (bg-surface, text-muted, p-4, rounded-md). */
+:root {
+  --color-bg: #fbfaf7;
+  --color-surface: #ffffff;
+  --color-fg: #1c1b19;
+  --color-muted: #5f5b53;
+  --color-border: #dcd8cf;
+  --color-accent: #1f5f4a;
+  --color-accent-fg: #ffffff;
+  --color-danger: #a4282b;
+  --color-success: #23683d;
+  --color-focus: #2b59c3;
+
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+  --font-text: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(28 27 25 / 0.06);
+  --shadow-md: 0 4px 12px rgb(28 27 25 / 0.08);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #151513;
+    --color-surface: #1e1d1a;
+    --color-fg: #f1efe9;
+    --color-muted: #b4afa4;
+    --color-border: #3a3833;
+    --color-accent: #7cc4a6;
+    --color-accent-fg: #0e2a20;
+    --color-danger: #f09a9c;
+    --color-success: #8fd3a7;
+    --color-focus: #9db8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #151513;
+  --color-surface: #1e1d1a;
+  --color-fg: #f1efe9;
+  --color-muted: #b4afa4;
+  --color-border: #3a3833;
+  --color-accent: #7cc4a6;
+  --color-accent-fg: #0e2a20;
+  --color-danger: #f09a9c;
+  --color-success: #8fd3a7;
+  --color-focus: #9db8ff;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

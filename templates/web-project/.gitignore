@@ -1,0 +1,32 @@
+# dependencies
+/node_modules
+.pnpm-debug.log*
+
+# next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# testing
+/coverage
+/playwright-report/
+/test-results/
+
+# env files (.env.example is committed)
+.env*
+!.env.example
+
+# supabase
+supabase/.branches
+supabase/.temp
+
+# agent team (local trail and logs)
+.audit/
+.agent-logs/
+
+# misc
+.DS_Store
+*.pem
+.vercel
