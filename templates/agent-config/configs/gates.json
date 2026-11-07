@@ -1,0 +1,12 @@
+{
+  "_doc": "Gate budgets. Changing this file needs human approval (the guard hook blocks agent edits).",
+  "a11y": { "fail_on_impact": ["serious", "critical"] },
+  "visual": { "viewports": [375, 768, 1280], "max_diff_pixel_ratio": 0.01 },
+  "perf": {
+    "routes": ["/", "/login"],
+    "largest-contentful-paint": 2500,
+    "cumulative-layout-shift": 0.1,
+    "interaction-to-next-paint": 200,
+    "first_load_js_kb": 170
+  }
+}

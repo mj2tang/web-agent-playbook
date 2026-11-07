@@ -1,0 +1,20 @@
+# Codex project config for {{project}} (web-agent-playbook).
+# Codex applies a project config only for trusted projects, and your user config (~/.codex/config.toml)
+# can override these values. The team scripts therefore pass sandbox flags explicitly; treat this file as
+# defaults for interactive sessions plus the MCP servers.
+
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+network_access = false
+
+# Local Supabase only: the local stack serves MCP at /mcp (start it with `pnpm exec supabase start`).
+# Never point this at a hosted project; that needs a human (see AGENTS.md, "Needs human approval").
+[mcp_servers.supabase]
+url = "http://127.0.0.1:54321/mcp"
+
+# Browser for screenshots and visual review.
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]

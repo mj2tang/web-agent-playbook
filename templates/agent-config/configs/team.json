@@ -1,0 +1,27 @@
+{
+  "trust": {
+    "start_workers": 1,
+    "max_workers": 3,
+    "promote_after": 3,
+    "_doc": "Parallelism is earned: start at start_workers; +1 after promote_after consecutive first-round approvals; -1 after a revert or human rework. See scripts/agent-team/audit.py trust --explain."
+  },
+  "integration_branch": "main",
+  "max_review_rounds": 2,
+  "workers": {
+    "frontend": "frontend-worker",
+    "backend": "backend-worker"
+  },
+  "contract": "system-architect",
+  "design": "ui-designer",
+  "supervisor": "supervisor",
+  "reviewers": {
+    "security": "security-reviewer",
+    "accessibility": "a11y-reviewer",
+    "general": "code-reviewer"
+  },
+  "headless_runner": "claude",
+  "review_panel": [
+    { "name": "claude", "cmd": "claude -p --permission-mode plan --model opus" },
+    { "name": "codex", "cmd": "codex exec --sandbox read-only -" }
+  ]
+}
