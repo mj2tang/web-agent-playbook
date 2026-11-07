@@ -4,6 +4,7 @@
   playbook.py new  <dir> --name my-site [--description "..."] [--mode vendor|plugin] [--bootstrap]
   playbook.py init <dir> [--profile auto|core|supabase|ui|full] [--guardrails] [--no-link] [--mode vendor|plugin]
   playbook.py sync <dir> [--force]                    # update vendored skills/agents/hooks/scripts
+  playbook.py doctor <dir>                            # health check: files, hooks, agents, tools
 
 Standard library only. Never overwrites a file the project changed unless --force is given.
 `init` never edits package.json, a Makefile, or source; the only edits to existing files are a merge
@@ -17,6 +18,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -455,6 +457,87 @@ def cmd_sync(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_doctor(a: argparse.Namespace) -> int:
+    """Check an installed project: managed files, Claude and Codex hooks, Codex agents, tools. Exit 1 on FAIL."""
+    target = Path(a.dir).resolve()
+    results: list[tuple[str, str, str]] = []
+
+    def report(status: str, name: str, detail: str) -> None:
+        results.append((status, name, detail))
+
+    lock_path = target / LOCK
+    if not lock_path.exists():
+        print(f"FAIL install: no {LOCK} - run `playbook.py init` (or `new`) on {a.dir} first")
+        return 1
+    lock = json.loads(lock_path.read_text())
+    if lock.get("playbook_version") != VERSION:
+        report("WARN", "version", f"installed {lock.get('playbook_version')}, playbook is {VERSION} - `playbook.py sync`")
+    missing, edited = [], []
+    for rel, digest in lock["files"].items():
+        path = target / rel
+        if not path.exists():
+            missing.append(rel)
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            edited.append(rel)
+    if missing:
+        report("FAIL", "managed files", f"{len(missing)} missing ({', '.join(missing[:5])}); {len(edited)} edited "
+               "locally - run `playbook.py sync` to restore (it keeps your edits)")
+    elif edited:
+        report("WARN", "managed files", f"{len(edited)} edited locally (sync keeps them; --force overwrites)")
+    else:
+        report("OK", "managed files", f"{len(lock['files'])} up to date")
+
+    guard = target / ".claude/hooks/guard.py"
+    settings_path = target / ".claude/settings.json"
+    settings = settings_path.read_text() if settings_path.exists() else ""
+    if guard.exists():
+        if "guard.py" in settings:
+            report("OK", "claude hooks", "guard registered in .claude/settings.json")
+        else:
+            report("FAIL", "claude hooks", "guard.py is vendored but not registered in .claude/settings.json - re-run "
+                   "`init --guardrails`")
+        codex_cfg = target / ".codex/config.toml"
+        sidecar = target / ".codex/web-playbook.config.toml"
+        if codex_cfg.exists() and "guard.py" in codex_cfg.read_text():
+            report("OK", "codex hooks", "guard registered in .codex/config.toml - trust it once in Codex (startup "
+                   "review or /hooks); untrusted hooks don't run, and `codex exec` skips them silently")
+        elif sidecar.exists() and "guard.py" in sidecar.read_text():
+            report("WARN", "codex hooks", "only in .codex/web-playbook.config.toml - copy the [[hooks.PreToolUse]] "
+                   "blocks into .codex/config.toml, then trust them via /hooks")
+        else:
+            report("WARN", "codex hooks", "guard not registered for Codex - re-run `init --guardrails`")
+    else:
+        report("WARN", "guardrails", "not installed (opt-in: `init --guardrails`)")
+
+    agents = sorted(p.stem for p in (ROOT / "agents").glob("*.md"))
+    present = [n for n in agents if (target / f".codex/agents/{n}.toml").exists()]
+    report("OK" if len(present) == len(agents) else "WARN", "codex agents",
+           f"{len(present)}/{len(agents)} in .codex/agents" if len(present) != len(agents) else str(len(present)))
+    if (target / INSTRUCTIONS).exists():
+        agents_md = (target / "AGENTS.md").read_text() if (target / "AGENTS.md").exists() else ""
+        if INSTRUCTIONS not in agents_md:
+            report("WARN", "AGENTS.md", f"no pointer to {INSTRUCTIONS}, so Codex won't see the team rules")
+
+    pm = package_manager(target)
+    for tool, why in (("python3", "gate scripts"), ("node", "the app and gates"), (pm, "installs and gates")):
+        if not shutil.which(tool):
+            report("WARN", tool, f"not found on PATH (needed for {why})")
+    if (target / "supabase").is_dir():
+        if (target / "node_modules/.bin/supabase").exists() or shutil.which("supabase"):
+            report("OK", "supabase CLI", "found")
+        else:
+            report("WARN", "supabase CLI", "not found - add it as a dev dependency (`supabase`) or install it; "
+                   "db-check needs it")
+        if not shutil.which("docker"):
+            report("WARN", "docker", "not found - local Supabase (db-check) needs Docker")
+
+    for status, name, detail in results:
+        print(f"{status:<4} {name}: {detail}")
+    fails = sum(1 for r in results if r[0] == "FAIL")
+    print(f"doctor: {fails} failure(s), {sum(1 for r in results if r[0] == 'WARN')} warning(s)")
+    return 1 if fails else 0
+
+
 def print_report(s: Scaffolder, target: Path) -> None:
     prefix = "[dry-run] " if s.dry_run else ""
     print(f"{prefix}{target}: {len(s.report['created'])} created, "
@@ -466,6 +549,7 @@ def print_report(s: Scaffolder, target: Path) -> None:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("doctor").add_argument("dir")
     for name in ("new", "init", "sync"):
         sp = sub.add_parser(name)
         sp.add_argument("dir")
@@ -491,7 +575,7 @@ def main() -> int:
             sp.add_argument("--bootstrap", action="store_true",
                             help="also run pnpm install and make check, and commit the lockfile")
     a = p.parse_args()
-    return {"new": cmd_new, "init": cmd_init, "sync": cmd_sync}[a.cmd](a)
+    return {"new": cmd_new, "init": cmd_init, "sync": cmd_sync, "doctor": cmd_doctor}[a.cmd](a)
 
 
 if __name__ == "__main__":

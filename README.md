@@ -51,6 +51,7 @@ Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent or
 | `--guardrails` | guard hook + guarded permissions |
 | `--mode plugin` | enable the Claude Code plugin instead of vendoring agents/hooks (skills still copied for Codex) |
 | `sync .` | update vendored skills/agents/scripts; keeps files you edited (`--force` to overwrite) |
+| `doctor .` | health check: missing or edited managed files, Claude and Codex hook registration (and the Codex trust reminder), Codex agents, `AGENTS.md` pointer, tools (Node, package manager, Supabase CLI, Docker) |
 
 Installing next to `coding-agent-playbook` in the same repo isn't supported yet; `init` detects it and stops.
 
