@@ -114,6 +114,37 @@ class TestGates(GateCase):
         self.assertIn("pnpm exec playwright test --config playwright.playbook.config.ts", calls)
 
 
+class TestDesignCheck(GateCase):
+    def test_skipped_without_ui_dirs(self):
+        self.package({})
+        rc, out, _ = self.gate("design-check")
+        self.assertEqual(rc, 4)
+        self.assertIn("SKIPPED: design-check (no src/app, src/components, app, or components directory)", out)
+
+    def test_findings_fail_and_clean_passes(self):
+        self.package({})
+        (self.repo / "src/app").mkdir(parents=True)
+        (self.repo / "src/app/page.tsx").write_text('<div className="bg-blue-500">x</div>\n')
+        rc, out, _ = self.gate("design-check")
+        self.assertEqual(rc, 1, out)
+        self.assertIn("src/app/page.tsx:1 palette-class", out)
+        (self.repo / "src/app/page.tsx").write_text('<div className="bg-surface">x</div>\n')
+        rc, out, _ = self.gate("design-check")
+        self.assertEqual(rc, 0, out)
+
+    def test_runs_impeccable_detector_when_installed(self):
+        self.package({})
+        (self.repo / "src/components").mkdir(parents=True)
+        (self.repo / "src/components/x.tsx").write_text("ok\n")
+        bin_dir = self.repo / "node_modules/.bin"
+        bin_dir.mkdir(parents=True)
+        (bin_dir / "impeccable").write_text("#!/bin/sh\nexit 0\n")
+        (bin_dir / "impeccable").chmod(0o755)
+        rc, out, calls = self.gate("design-check")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("pnpm exec impeccable detect src/components", calls)
+
+
 class TestGatesInMonorepo(GateCase):
     def test_i7_gates_run_at_install_root_not_git_root(self):
         app = self.repo / "apps/web"

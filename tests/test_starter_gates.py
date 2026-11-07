@@ -49,6 +49,15 @@ class TestStarterWiring(unittest.TestCase):
         self.assertIn("baselines:", mk)
         self.assertIn("UPDATE_BASELINES=1", mk)
 
+    def test_design_check_wired_into_starter_and_permissions(self):
+        mk = (WEB / "Makefile").read_text()
+        self.assertIn("design-check:", mk)
+        self.assertRegex(mk, r"(?m)^check: design-check$")
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import playbook
+        self.assertIn("Bash(scripts/gates/design-check.sh)", playbook.PERMISSIONS_CORE["allow"])
+        self.assertIn("Bash(make design-check)", playbook.PERMISSIONS_WEB["allow"])
+
 
 if __name__ == "__main__":
     unittest.main()

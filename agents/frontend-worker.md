@@ -14,4 +14,4 @@ Specialisation:
 - Style only with tokens (`src/styles/tokens.css` via Tailwind theme). No raw hex, no arbitrary px. Missing token → `blocked`, ask the ui-designer.
 - Build every state in the component spec (empty, loading, error included), keyboard-accessible, with role-based Playwright tests and axe clean.
 - Data comes through the contract: types from `src/lib/database.types.ts`, schemas from `src/lib/contracts/`. Never change either.
-- Gates: `make check` and `make ui-check`. Look at the screenshots before you return.
+- Gates: `make check` (includes `design-check`) and `make ui-check`. Look at the screenshots before you return.

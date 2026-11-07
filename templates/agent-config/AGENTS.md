@@ -6,6 +6,7 @@
 - Install: `pnpm install` (lockfile committed; don't add packages without approval)
 - Dev: `pnpm dev` · Local Supabase: `pnpm exec supabase start` / `status` / `stop` (Docker)
 - Lint + types + unit: `make check` (no Makefile: `scripts/gates/check.sh`)
+- Design lint: `make design-check` (`scripts/gates/design-check.sh`): tokens not raw values, focus kept, real buttons/links, no generic-AI patterns
 - Database: `make db-check` - `supabase db reset`, pgTAP (`supabase test db`), RLS on every table, generated types up to date (`scripts/gates/db-check.sh`)
 - UI: `make ui-check` - Playwright e2e, axe, screenshots at 375/768/1280 (`scripts/gates/ui-check.sh`)
 - Performance: `make perf` - Lighthouse budgets from `configs/gates.json`

@@ -1,5 +1,5 @@
 # Gates for {{project}}. Agents and CI run the same targets (web-quality-gates skill).
-.PHONY: setup env db-start db-stop check db-check ui-check baselines perf
+.PHONY: setup env db-start db-stop check design-check db-check ui-check baselines perf
 
 setup:
 	pnpm install
@@ -16,7 +16,11 @@ db-stop:
 env: db-start
 	scripts/env-local.sh
 
-check:
+# Deterministic design lint (tokens, focus, semantics, generic-AI patterns); fast, so part of check.
+design-check:
+	scripts/gates/design-check.sh
+
+check: design-check
 	pnpm run lint
 	pnpm run typecheck
 	pnpm run test

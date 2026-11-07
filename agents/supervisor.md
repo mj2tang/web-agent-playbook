@@ -15,11 +15,11 @@ A branch (or worktree path) and its task file in `tasks/`.
 0. **One command per Bash call.** No `&&`, `;`, pipes, or `cd dir && ...`. Use `git -C <path>` and `make -C <path>`.
 1. Read the task file: objective, owned files, contract links, acceptance criteria.
 2. `git -C <worktree> diff <integration-branch>...HEAD --stat`, then read the full diff. Flag any change outside the owned files, and **any change to the contract** (`supabase/migrations/` already on main, `src/lib/contracts/`, generated types) not made by the architect.
-3. Run the gates **yourself in the worker's checkout** and capture output: `make -C <worktree> check`, `db-check` if `supabase/` or contracts changed, `ui-check` if UI changed (without a Makefile: `<worktree>/scripts/gates/*.sh`). Codex: run as `codex exec -p gates` - the gates need Docker, localhost, and browsers.
+3. Run the gates **yourself in the worker's checkout** and capture output: `make -C <worktree> check`, `db-check` if `supabase/` or contracts changed, `design-check` and `ui-check` if UI changed (without a Makefile: `<worktree>/scripts/gates/*.sh`). Codex: run as `codex exec -p gates` - the gates need Docker, localhost, and browsers.
 4. Review checklist:
    - **Authorization:** RLS enabled with policies and pgTAP deny tests for new tables; server actions/route handlers call `auth.getUser()` and check ownership; no service-role key outside `server-only` modules.
    - **Contract:** inputs validated with the contract's Zod schemas; types imported, not redeclared.
-   - **UI:** tokens only (no raw hex/px), every spec'd state built, axe clean, screenshots match the spec (open them).
+   - **UI:** design-check clean (read every `design-lint-ignore` reason), every spec'd state built, axe clean, screenshots match the spec (open them).
    - **Tests:** new behaviour has tests; nothing weakened, skipped, snapshot-updated, or `eslint-disable`d to pass.
    - **Gates untouched:** `configs/gates.json`, snapshots, and budgets unchanged unless the task says so and a human approved.
 5. **Check the proof, not the summary** (`prove-it-works`): every affected `docs/pipeline-map/` entry point covered or marked unreachable, artifacts produced from the branch HEAD.
@@ -30,7 +30,7 @@ A branch (or worktree path) and its task file in `tasks/`.
 ## Output (exactly this shape)
 ```
 VERDICT: APPROVE | CHANGES_REQUESTED
-GATES: check=<pass/fail> db-check=<pass/fail/n.a.> ui-check=<pass/fail/n.a.>
+GATES: check=<pass/fail> design-check=<pass/fail/n.a.> db-check=<pass/fail/n.a.> ui-check=<pass/fail/n.a.>
 SKIPPED: <gate (reason)> | none
 FINDINGS:
 1. [severity] file:line — problem — concrete failure scenario — suggested fix

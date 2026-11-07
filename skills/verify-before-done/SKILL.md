@@ -10,9 +10,10 @@ Run the checks and paste the real result, not what you expect:
 ```
 make check      # eslint + tsc --noEmit + vitest
 make db-check   # if supabase/ changed: db reset, pgTAP, RLS on every table, types up to date
+make design-check  # if UI changed: tokens, focus, semantics, generic-AI patterns (part of check in the starter)
 make ui-check   # if pages/components changed: Playwright + axe + screenshots
 ```
-In repos without these make targets: `scripts/gates/check.sh`, `db-check.sh`, `ui-check.sh`.
+In repos without these make targets: `scripts/gates/check.sh`, `db-check.sh`, `design-check.sh`, `ui-check.sh`.
 
 - Report each as pass / fail / **skipped (why)**. Skipped is not pass.
 - If something fails, say so and fix it or report it - never say "should work".

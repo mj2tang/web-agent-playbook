@@ -25,4 +25,4 @@ Tokens are the contract between design and code. Workers style with tokens; only
 - No new font families outside `--font-*`.
 
 ## Done when
-`grep -rnE "#[0-9a-fA-F]{3,8}\b|rgb\(|\[[0-9]+px\]" src/app src/components` returns nothing (outside `tokens.css`), and both themes pass the contrast check.
+`make design-check` (or `scripts/gates/design-check.sh`) reports 0 findings, and both themes pass the contrast check.

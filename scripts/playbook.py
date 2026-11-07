@@ -86,9 +86,11 @@ PERMISSIONS_CORE = {"allow": [
     "Bash(scripts/agent-team/run-wave.sh:*)", "Bash(python3 scripts/agent-team/audit.py:*)",
     "Bash(python3 scripts/agent-team/panel_review.py:*)",
     "Bash(scripts/gates/check.sh)", "Bash(scripts/gates/db-check.sh)", "Bash(scripts/gates/ui-check.sh)",
+    "Bash(scripts/gates/design-check.sh)",
 ]}
 PERMISSIONS_WEB = {"allow": [
-    "Bash(make check)", "Bash(make db-check)", "Bash(make ui-check)", "Bash(make perf)",
+    "Bash(make check)", "Bash(make design-check)", "Bash(make db-check)", "Bash(make ui-check)",
+    "Bash(make perf)",
     "Bash(pnpm install --frozen-lockfile)", "Bash(pnpm run:*)", "Bash(pnpm exec vitest:*)",
     "Bash(pnpm exec playwright test:*)", "Bash(pnpm exec tsc:*)", "Bash(pnpm exec eslint:*)",
     "Bash(pnpm exec supabase start)", "Bash(pnpm exec supabase stop)", "Bash(pnpm exec supabase status)",
