@@ -58,3 +58,22 @@ class TestPackaging(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDesignContextFiles(unittest.TestCase):
+    """PRODUCT.md + DESIGN.md at the repo root: the convention Impeccable, gstack and ui-ux-pro-max share."""
+
+    def test_brief_writes_product_and_design_md(self):
+        skill = (ROOT / "skills/design-brief/SKILL.md").read_text()
+        self.assertIn("PRODUCT.md", skill)
+        self.assertIn("DESIGN.md", skill)
+        for name in ("PRODUCT-template.md", "DESIGN-template.md"):
+            self.assertTrue((ROOT / "skills/design-brief/assets" / name).exists(), name)
+
+    def test_no_stale_brief_path(self):
+        stale = []
+        for top in ("skills", "agents", "templates", "docs", "README.md"):
+            for path in [ROOT / top] if (ROOT / top).is_file() else (ROOT / top).rglob("*.md"):
+                if "superpowers" not in path.parts and "docs/design/brief.md" in path.read_text():
+                    stale.append(str(path.relative_to(ROOT)))
+        self.assertEqual(stale, [])

@@ -2,7 +2,7 @@
 
 From "make it look good" to a shipped, accessible UI.
 
-1. **Brief** (`design-brief`): audience, the job of each page, three tone words plus one it must not be, references loved and hated, what would make the owner wince. One page in `docs/design/brief.md`. When the owner is unsure, show two directions side by side.
+1. **Brief** (`design-brief`): audience, the job of each page, three tone words plus one it must not be, references loved and hated, what would make the owner wince. Written to `PRODUCT.md` (who and what) and `DESIGN.md` (direction, do/don't) at the repo root - the same files Impeccable and gstack use, so those tools stay on brief too. When the owner is unsure, show two directions side by side.
 2. **Tokens** (`design-tokens`): semantic colour, type, space, radius, shadow, and motion in `src/styles/tokens.css`, light and dark, contrast-checked, mapped into Tailwind's `@theme`. No raw values in components.
 3. **Component specs** (`component-spec`): anatomy, variants, every state (hover, focus-visible, disabled, loading, empty, error), responsive behaviour, keyboard and screen-reader behaviour, and copy (`ux-copy`).
 4. **Build** (frontend-worker): server components by default, tokens only, every state, role-based Playwright tests.

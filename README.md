@@ -87,7 +87,7 @@ This playbook is about the team, the contract, and the gates. For visual taste a
 | [OpenAI Build Web Apps plugin](https://github.com/openai/plugins) | shadcn/ui, Stripe, Supabase, React best practices, frontend testing | `/plugins` in Codex |
 | [shadcn MCP](https://ui.shadcn.com/mcp) | Browse and install registry components | `pnpm dlx shadcn@latest mcp init --client codex` |
 
-Our `design-*` skills set the process (brief → tokens → specs → review); these supply taste and component knowledge. If two skills disagree, the project's `docs/design/brief.md` and tokens win.
+Our `design-*` skills set the process (brief → tokens → specs → review); these supply taste and component knowledge. If two skills disagree, the project's `PRODUCT.md`, `DESIGN.md`, and tokens win. Both files use the names Impeccable and gstack read, so they share one design context.
 
 ## The 10 rules (web edition)
 

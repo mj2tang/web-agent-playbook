@@ -15,7 +15,7 @@ Freeze the target before the team starts; the orchestrator plans tasks from this
 - Design doc: `docs/design/<feature>.md` · Contract commit: <sha, filled by system-architect>
 
 ## Design
-- Brief: `docs/design/brief.md` · Component specs: `docs/design/components/<name>.md`
+- Brief: `PRODUCT.md`, `DESIGN.md` · Component specs: `docs/design/components/<name>.md`
 
 ## Constraints
 - <performance budgets, browsers, accessibility commitments, data retention, compliance>

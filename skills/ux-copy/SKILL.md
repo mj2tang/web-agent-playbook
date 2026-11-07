@@ -12,7 +12,7 @@ description: Write or review interface copy - headings, buttons and CTAs, form l
 - **Confirmations for destructive actions** name the object and consequence: "Delete 'Groceries'? This can't be undone." Buttons: "Delete note" / "Cancel".
 - **Labels** are nouns, hints are sentences; never rely on placeholder text.
 - **Length:** headings ≤ 8 words, button ≤ 3 words, error ≤ 2 short sentences.
-- **Voice:** match the brief's three adjectives; sentence case; numerals for numbers; no exclamation marks in errors.
+- **Voice:** match the three tone adjectives in `DESIGN.md`; sentence case; numerals for numbers; no exclamation marks in errors.
 - **i18n-ready:** whole sentences in one string (no concatenated fragments), room for 30% expansion.
 
 ## Done when

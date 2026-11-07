@@ -18,11 +18,11 @@
 - `src/lib/supabase/` server/browser clients + session-refresh helper for `src/proxy.ts` · `src/lib/server/` server-only code · `src/lib/contracts/` Zod schemas · `src/lib/database.types.ts` generated
 - `supabase/migrations/` schema + RLS · `supabase/tests/` pgTAP · `supabase/seed.sql` local data
 - `tests/unit/` Vitest · `tests/e2e/` Playwright (+ axe, `@visual` screenshots)
-- `docs/design/` brief, system design, component specs · `docs/pipeline-map/` entry points and proof
+- `PRODUCT.md` + `DESIGN.md` (repo root) design context · `docs/design/` system design, component specs · `docs/pipeline-map/` entry points and proof
 - `tasks/` agent task board · `configs/` team and gate budgets
 
 ## Conventions
-- Style with tokens only: no raw hex/rgb or arbitrary px in components; new tokens come from the ui-designer.
+- Read `DESIGN.md` before UI work. Style with tokens only: no raw hex/rgb or arbitrary px in components; new tokens come from the ui-designer.
 - `"use client"` only on leaves that need state, effects, or browser APIs.
 - Every server action and route handler validates input with the contract's Zod schema and calls `supabase.auth.getUser()` before acting.
 - Every table in `public` has RLS enabled, explicit policies per role and operation, and pgTAP tests for allow and deny.

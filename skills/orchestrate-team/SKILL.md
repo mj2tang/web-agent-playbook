@@ -12,7 +12,7 @@ Throughput comes from trust, not from the number of agents. Earn trust in one wo
 |---|---|---|---|
 | Orchestrator | main session (`claude --agent orchestrator`) | rarely | `tasks/`, integration, merges, the decision trail |
 | System architect | subagent, before wave 1 | contract only | `docs/design/system.md`, `supabase/migrations/` (contract), `src/lib/contracts/` |
-| UI designer | subagent, before wave 1 | tokens/specs only | `docs/design/brief.md`, `src/styles/tokens.css`, `docs/design/components/` |
+| UI designer | subagent, before wave 1 | tokens/specs only | `PRODUCT.md`, `DESIGN.md`, `src/styles/tokens.css`, `docs/design/components/` |
 | Frontend / backend workers | subagents, `isolation: worktree` | yes | the files listed in their task |
 | Supervisor (+ security, a11y reviewers) | subagents, read-only | no | verdicts |
 
