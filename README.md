@@ -11,7 +11,9 @@ curl -fsSL https://raw.githubusercontent.com/mj2tang/web-agent-playbook/main/scr
 # Or start a new site: Next.js 16 + Supabase starter, green on first run
 curl -fsSL https://raw.githubusercontent.com/mj2tang/web-agent-playbook/main/scripts/init.sh \
   | bash -s -- new my-site --name my-site --bootstrap
-cd my-site && make db-start env && make check db-check ui-check
+cd my-site && make db-start env && make check db-check
+make baselines   # first time: writes screenshot baselines - look at them, then commit them
+make ui-check
 ```
 
 Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent orchestrator` → "Build tasks/EPIC.md as a team."
@@ -25,8 +27,8 @@ Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent or
 | **Frontend skills** | `frontend-performance` (Core Web Vitals + JS budgets), `forms-and-validation` (one Zod schema client + server) |
 | **Backend skills** | `system-design-doc`, `api-contract`, `data-modeling`, `supabase-migrations`, `rls-policies`, `supabase-auth`, `edge-functions-vs-rpc`, `security-review` (OWASP), `observability` |
 | **Team and trust skills** | `orchestrate-team`, `feature-spec`, `worker-protocol`, `merge-train`, `decision-log`, `pause-and-resume`, `prove-it-works`, `encode-lesson`, `interrogate` (cross-model review), `plan-first`, `tdd-loop`, `verify-before-done`, `systematic-debugging`, `web-quality-gates` |
-| **Gates** | `make check` (ESLint, tsc, Vitest) · `make db-check` (migrations from zero, pgTAP, **RLS on every public table**, type drift) · `make ui-check` (Playwright, axe, screenshots at 375/768/1280) · `make perf` (Lighthouse). In plugged-in repos: `scripts/gates/*.sh`, which use your own `package.json` scripts and report **SKIPPED (exit 4), never a silent pass** |
-| **Guardrails** | Guard hook blocks push, deploys, and anything touching a linked/remote Supabase project; blocks the service-role key in client code; protects `.env*`, gate budgets, and snapshots; asks before new dependencies, snapshot updates, and edits to applied migrations |
+| **Gates** | `make check` (ESLint, tsc, Vitest) · `make db-check` (migrations from zero, pgTAP, **RLS on every public table**, type drift) · `make ui-check` (Playwright, axe, screenshots at 375/768/1280 against committed baselines) · `make perf` (Lighthouse). Thresholds live in `configs/gates.json`. In plugged-in repos: `scripts/gates/*.sh`, which use your own `package.json` scripts and report **SKIPPED (exit 4), never a silent pass** |
+| **Guardrails** | Guard hook (best-effort command matching, [details](docs/claude-code.md#hooks)) blocks push, deploys, and linked/remote Supabase commands, asking about unknown ones; blocks the service-role key in client code; protects `.env*`, gate budgets, and snapshots; asks before new dependencies, baseline updates, Playwright config edits, and edits to applied migrations |
 | **Codex setup** | `AGENTS.md` with Code Review Rules (RLS, authz, secrets, contract drift, a11y, tokens), `.agents/skills/`, `.codex/config.toml` (local Supabase MCP + Playwright MCP), headless runner with explicit sandbox flags ([details](docs/codex.md)) |
 | **Starter** (`new`) | Next.js 16 App Router, TypeScript, Tailwind v4 with design tokens, `@supabase/ssr` auth (sign up/in/out, `src/proxy.ts` session refresh), a `notes` table with owner-only RLS and 8 pgTAP policy tests, Zod contracts, Vitest, Playwright + axe + visual specs, CI |
 | **Trust before parallelism** | Workers start at 1 and earn more from clean approvals (`scripts/agent-team/audit.py trust`); every decision lands in `.audit/decisions.tsv`; proof runs through a web **pipeline map** (`routes`, `server-actions-api`, `database-rls`, `auth`, `jobs`) |

@@ -7,11 +7,15 @@ set -euo pipefail
 # Headless Claude ignores the project's permissions.allow rules until the folder has been trusted:
 # run `claude` interactively in this project once and accept the trust dialog before using this script.
 
-ROOT=$(git rev-parse --show-toplevel)
+# ROOT is where the playbook is installed (an app inside a monorepo, or the repo itself); worktrees are
+# of the whole repo, and workers run in the same sub-path inside them.
+ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
+GIT_TOP=$(git -C "$ROOT" rev-parse --show-toplevel)
+REL=$(python3 -c 'import os,sys; r=os.path.relpath(sys.argv[1], sys.argv[2]); print("" if r == "." else r)' "$ROOT" "$GIT_TOP")
 cd "$ROOT"
 RUNNER=${RUNNER:-$(python3 -c 'import json;print(json.load(open("configs/team.json")).get("headless_runner","claude"))' 2>/dev/null || echo claude)}
 BASE=${BASE:-$(python3 -c 'import json;print(json.load(open("configs/team.json")).get("integration_branch","main"))' 2>/dev/null || echo main)}
-WT_DIR=${WT_DIR:-"$ROOT/../$(basename "$ROOT")-worktrees"}
+WT_DIR=${WT_DIR:-"$GIT_TOP/../$(basename "$GIT_TOP")-worktrees"}
 LOG_DIR="$ROOT/.agent-logs"
 mkdir -p "$WT_DIR" "$LOG_DIR"
 
@@ -55,7 +59,8 @@ fi
 # the runner commits each worker's owned files after it exits. CODEX_APPROVE_FOR_ME=1 instead lets Codex
 # escalate blocked commands (git commit, ...) through its automatic reviewer - only for repos you trust.
 CODEX_ARGS=(--sandbox workspace-write -c sandbox_workspace_write.network_access=false)
-[ "${CODEX_APPROVE_FOR_ME:-0}" = "1" ] && CODEX_ARGS=(--approve-for-me)
+# Keeps the sandbox flags above: --approve-for-me only adds automatic review of blocked commands.
+[ "${CODEX_APPROVE_FOR_ME:-0}" = "1" ] && CODEX_ARGS+=(--approve-for-me)
 # The package store lives outside the worktree; without write access installs/execs fail in the sandbox.
 if [ "$PM" = pnpm ] && command -v pnpm >/dev/null; then
   store=$(pnpm store path 2>/dev/null || true)
@@ -107,21 +112,22 @@ for id in "$@"; do
   if [ ! -d "$wt" ]; then
     git worktree add -q "$wt" -b "$branch" "$BASE" 2>/dev/null || git worktree add -q "$wt" "$branch"
   fi
+  app="$wt${REL:+/$REL}"  # the install root inside this worktree
   # Install the worktree's deps here: sandboxed workers (codex) have no network to do it themselves.
-  if [ -f "$wt/package.json" ] && command -v "$PM" >/dev/null; then
-    (cd "$wt" && "${INSTALL[@]}" >/dev/null) || echo "warning: $PM install failed in $wt; the worker may not be able to run gates"
+  if [ -f "$app/package.json" ] && command -v "$PM" >/dev/null; then
+    (cd "$app" && "${INSTALL[@]}" >/dev/null) || echo "warning: $PM install failed in $app; the worker may not be able to run gates"
   fi
   prompt="You are a worker on this web project's agent team. Follow the worker-protocol skill exactly.
 Task file: $task. Branch: $branch (already checked out in this worktree).
 Gates: $GATE_HINT.
 Do not push. Finish with the worker-protocol summary block."
-  echo "▶ $id → $wt ($RUNNER)"
-  python3 "$ROOT/scripts/agent-team/audit.py" log dispatch "$id" "run-wave:$RUNNER" "dispatched $branch" "wave of $# (trust limit $ALLOWED$([ "$#" -gt "$ALLOWED" ] && echo ", forced"))" "$wt" started || true
+  echo "▶ $id → $app ($RUNNER)"
+  python3 "$ROOT/scripts/agent-team/audit.py" log dispatch "$id" "run-wave:$RUNNER" "dispatched $branch" "wave of $# (trust limit $ALLOWED$([ "$#" -gt "$ALLOWED" ] && echo ", forced"))" "$app" started || true
   case "$RUNNER" in
-    claude) (cd "$wt" && claude -p "$prompt" --permission-mode acceptEdits ${ALLOW_ARGS[@]+"${ALLOW_ARGS[@]}"} >"$LOG_DIR/$slug.log" 2>&1) & ;;
-    codex)  (cd "$wt"; rc=0; codex exec "${CODEX_ARGS[@]}" "$prompt
+    claude) (cd "$app" && claude -p "$prompt" --permission-mode acceptEdits ${ALLOW_ARGS[@]+"${ALLOW_ARGS[@]}"} >"$LOG_DIR/$slug.log" 2>&1) & ;;
+    codex)  (cd "$app"; rc=0; codex exec "${CODEX_ARGS[@]}" "$prompt
 $CODEX_NOTE" >"$LOG_DIR/$slug.log" 2>&1 || rc=$?
-             commit_owned "$wt" "$task" "$id" >>"$LOG_DIR/$slug.log" 2>&1; exit $rc) & ;;
+             commit_owned "$app" "$task" "$id" >>"$LOG_DIR/$slug.log" 2>&1; exit $rc) & ;;
     *) echo "unknown RUNNER=$RUNNER"; exit 1 ;;
   esac
   pids+=($!)

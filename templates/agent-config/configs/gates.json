@@ -1,12 +1,14 @@
 {
-  "_doc": "Gate budgets. Changing this file needs human approval (the guard hook blocks agent edits).",
+  "_doc": "Gate thresholds - the single source the gates read. Changing this file needs human approval (the guard hook blocks agent edits).",
   "a11y": { "fail_on_impact": ["serious", "critical"] },
   "visual": { "viewports": [375, 768, 1280], "max_diff_pixel_ratio": 0.01 },
   "perf": {
+    "_doc": "Read by scripts/lighthouse-config.mjs (make perf). Lighthouse is a lab test, so total-blocking-time stands in for INP. first_load_js_kb is checked in review from `pnpm build` output, not automated.",
     "routes": ["/", "/login"],
     "largest-contentful-paint": 2500,
     "cumulative-layout-shift": 0.1,
-    "interaction-to-next-paint": 200,
+    "total-blocking-time": 200,
+    "accessibility_min_score": 0.95,
     "first_load_js_kb": 170
   }
 }

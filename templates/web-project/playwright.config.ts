@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+// Thresholds come from configs/gates.json (human-approved changes only).
+const gates = JSON.parse(readFileSync("configs/gates.json", "utf8"));
 
 const port = Number(process.env.PORT ?? 3000);
 const baseURL = `http://localhost:${port}`;
@@ -9,10 +13,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [["list"], ["html", { open: "never" }]],
-  // New screenshot tests write their baseline on the first run; existing baselines are compared.
-  // Updating baselines (--update-snapshots) needs a human (guard hook).
-  updateSnapshots: "missing",
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled" } },
+  // Baselines are written only on purpose (`make baselines`, a human step) and committed; a missing
+  // baseline fails the gate instead of silently passing.
+  updateSnapshots: process.env.UPDATE_BASELINES === "1" ? "missing" : "none",
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: gates.visual.max_diff_pixel_ratio, animations: "disabled" } },
   use: { baseURL, trace: "retain-on-failure" },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } } },

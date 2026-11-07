@@ -1,7 +1,8 @@
 # Shared helpers for the gate scripts. Sourced, not run.
 # Exit codes: 0 pass, 1 fail, 4 skipped (unless GATES_ALLOW_SKIP=1). A skip is never a pass.
 set -uo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Run at the install root (two levels above scripts/gates/), which may be an app inside a monorepo.
+cd "$(dirname "$0")/../.."
 STATUS=0
 SKIPS=0
 

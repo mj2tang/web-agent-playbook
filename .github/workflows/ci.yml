@@ -25,6 +25,8 @@ jobs:
       - run: make -C /tmp/demo db-check
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: /tmp/demo
+      # A fresh starter has no committed baselines; write them for this smoke run, then compare.
+      - run: make -C /tmp/demo baselines
       - run: make -C /tmp/demo ui-check
       - uses: actions/upload-artifact@v4
         if: failure()

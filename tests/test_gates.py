@@ -114,5 +114,24 @@ class TestGates(GateCase):
         self.assertIn("pnpm exec playwright test --config playwright.playbook.config.ts", calls)
 
 
+class TestGatesInMonorepo(GateCase):
+    def test_i7_gates_run_at_install_root_not_git_root(self):
+        app = self.repo / "apps/web"
+        app.mkdir(parents=True)
+        (self.repo / "scripts/gates").rename(app / "gates-tmp")
+        (app / "scripts").mkdir()
+        (app / "gates-tmp").rename(app / "scripts/gates")
+        (self.repo / "package.json").write_text('{"name": "root", "scripts": {}}')
+        (app / "package.json").write_text('{"name": "web", "scripts": {"lint": "x", "typecheck": "x", "test": "x"}}')
+        (app / "pnpm-lock.yaml").write_text("")
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        e = {**os.environ, "PATH": f"{self.bin}:/usr/bin:/bin", "CALLS": str(self.calls)}
+        e.pop("GATES_ALLOW_SKIP", None)
+        p = subprocess.run(["bash", str(app / "scripts/gates/check.sh")], cwd=self.repo, env=e,
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertIn("pnpm run lint", self.calls.read_text())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,9 @@
+import { readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+
+// Which axe impacts fail the gate: configs/gates.json (human-approved changes only).
+const FAIL_ON: string[] = JSON.parse(readFileSync("configs/gates.json", "utf8")).a11y.fail_on_impact;
 
 // Every route belongs here (accessibility-audit skill). The gate fails on serious or critical issues.
 const ROUTES = ["/", "/login"];
@@ -12,7 +16,7 @@ for (const route of ROUTES) {
       const { violations } = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();
-      const blocking = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      const blocking = violations.filter((v) => FAIL_ON.includes(v.impact ?? ""));
       expect(blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`)).toEqual([]);
     });
   }

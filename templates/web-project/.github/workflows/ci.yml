@@ -15,7 +15,18 @@ jobs:
       - run: make check
       - run: make db-check
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Linux screenshot baselines
+        run: |
+          if ls tests/e2e/*-snapshots/*-linux.png >/dev/null 2>&1; then
+            echo "Comparing against committed Linux baselines."
+          else
+            echo "::warning::No Linux screenshot baselines are committed, so this run can't compare screenshots. Review the 'baselines' artifact and commit it."
+            make baselines
+          fi
       - run: make ui-check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: baselines, path: "tests/e2e/*-snapshots/*-linux.png", if-no-files-found: ignore }
       - uses: actions/upload-artifact@v4
         if: failure()
         with: { name: playwright-report, path: playwright-report }

@@ -13,6 +13,10 @@ make env                 # writes .env.local from the local stack
 pnpm dev                 # http://localhost:3000
 ```
 
+First time only: `make baselines` writes the screenshot baselines; look at them in `tests/e2e/*-snapshots/` and
+commit them. `make ui-check` fails while baselines are missing, so screenshots are always compared. Linux baselines
+for CI come from the CI `baselines` artifact.
+
 Another local Supabase project already running? Stop it (`supabase stop` in that project) or change the ports in
 `supabase/config.toml` (`[api]`, `[db]`, `[studio]`, ...). `make env` reads whatever the local stack reports.
 

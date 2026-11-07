@@ -1,7 +1,7 @@
 # Supabase
 
 ## Local only, by design
-Agents work against the local stack (`pnpm exec supabase start`, Docker). The guard hook blocks `supabase link`, `db push` without `--local`, `functions deploy`, `secrets set`, `--db-url`, `--project-ref`, and `psql` to non-local hosts. Promoting migrations to a hosted project is a human step.
+Agents work against the local stack (`pnpm exec supabase start`, Docker). The guard hook blocks `supabase link`, `db push` without `--local`, `functions deploy`, `secrets set`, `--db-url`, `--project-ref`, and `psql` to non-local hosts. Supabase subcommands it doesn't recognise need approval. Promoting migrations to a hosted project is a human step. The guard matches command text, so it is a safety net, not a sandbox.
 
 ## Commands agents use
 | Command | Purpose |

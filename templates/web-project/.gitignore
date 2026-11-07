@@ -13,6 +13,8 @@ next-env.d.ts
 /coverage
 /playwright-report/
 /test-results/
+.lighthouserc.json
+/.lighthouseci/
 
 # env files (.env.example is committed)
 .env*

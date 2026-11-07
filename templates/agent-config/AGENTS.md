@@ -41,7 +41,7 @@
 - Using `SUPABASE_SERVICE_ROLE_KEY` anywhere new; it bypasses RLS.
 - Adding or upgrading dependencies.
 - Editing a committed migration or migration history (`migration repair`).
-- Updating visual snapshots (`--update-snapshots`) or changing `configs/gates.json`.
+- Writing or updating visual baselines (`make baselines`, `--update-snapshots`), or changing `configs/gates.json` or the Playwright config.
 
 ## Proof and trail
 - Prove changes on the running app through every affected entry point in `docs/pipeline-map/` (`prove-it-works`); keep the map current in the same PR.

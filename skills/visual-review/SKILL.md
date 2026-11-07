@@ -17,7 +17,8 @@ Tests prove behaviour; screenshots prove it looks right. Look at them - don't ju
 5. **Report** each mismatch as `[severity] screenshot - expected (spec line) - actual - likely file:line`.
 
 ## Snapshots
-- A failing `toHaveScreenshot` is a finding, not a chore. Fix the UI, or - if the change is intended - say so and **ask a human** to run `pnpm exec playwright test --update-snapshots`. The guard hook asks before that command; snapshot files are protected from agent edits.
+- Baselines are committed. `ui-check` runs with `updateSnapshots: "none"`, so a missing baseline fails instead of silently writing one. Only a human writes baselines (`make baselines`, then review and commit the PNGs); CI uploads Linux baselines as an artifact to commit.
+- A failing `toHaveScreenshot` is a finding, not a chore. Fix the UI, or - if the change is intended - say so and **ask a human** to run `pnpm exec playwright test --update-snapshots`. The guard hook asks before that command and `make baselines`, and blocks edits, `rm`, and `mv` on snapshot files.
 - Mask genuinely dynamic regions (dates, avatars) with `mask:`, never by raising `maxDiffPixelRatio`.
 
 ## Done when

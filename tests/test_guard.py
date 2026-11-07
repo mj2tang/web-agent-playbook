@@ -78,3 +78,67 @@ class TestGuardFiles(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestGuardReviewFindings(unittest.TestCase):
+    """Bypasses found in the final review (C1, I1, I2, I3, I5)."""
+
+    def test_c1_remote_supabase_variants_blocked(self):
+        for cmd in ["supabase db reset --linked", "supabase migration up --linked", "supabase config push",
+                    "supabase projects delete abc", "supabase db dump --linked", "npx supabase@latest db push",
+                    "pnpm dlx supabase@3.0.0 link --project-ref x", "supabase --debug db push",
+                    "supabase --workdir . db push", "supabase db push --linked; echo --local",
+                    "supabase db push && echo --local", "supabase branches create x", "supabase orgs list",
+                    "node_modules/.bin/supabase db push", "supabase db pull", "supabase gen types --project-id abc",
+                    "supabase storage ls ss:///bucket --linked", "supabase db dump -f x.sql"]:
+            self.assertEqual(guard("bash", {"command": cmd})[0], 2, cmd)
+
+    def test_c1_local_supabase_still_allowed(self):
+        for cmd in ["supabase db reset", "pnpm exec supabase db reset --local", "supabase start",
+                    "supabase --workdir . status", "supabase db push --local", "supabase test db",
+                    "supabase gen types typescript --local > src/lib/database.types.ts", "supabase migration new x",
+                    "supabase functions serve hello", "supabase db dump --local -f x.sql", "supabase db lint --local",
+                    "pnpm exec supabase status -o env", "supabase migration list --local", "supabase stop",
+                    "echo supabase db push is blocked"]:
+            self.assertEqual(guard("bash", {"command": cmd}), (0, None), cmd)
+
+    def test_c1_unknown_supabase_subcommands_ask(self):
+        for cmd in ["supabase sso list", "supabase bootstrap"]:
+            self.assertEqual(guard("bash", {"command": cmd}), (0, "ask"), cmd)
+
+    def test_i1_service_role_variants_blocked(self):
+        multi = {"file_path": "/p/src/app/page.tsx", "edits": [{"old_string": "a", "new_string": "process.env.SUPABASE_SERVICE_ROLE_KEY"}]}
+        self.assertEqual(guard("files", multi)[0], 2)
+        for path, text in [("/p/app/page.tsx", "process.env.SUPABASE_SERVICE_ROLE_KEY"),
+                           ("/p/src/lib/supabase/client.ts", "process.env.SUPABASE_SERVICE_ROLE_KEY"),
+                           ("/p/src/components/x.tsx", "process.env.SUPABASE_SECRET_KEY"),
+                           ("/p/src/lib/thing.ts", '"use client";\nconst k = "sb_secret_abc"'),
+                           ("/p/src/hooks/useAdmin.ts", "SUPABASE_SERVICE_ROLE_KEY")]:
+            self.assertEqual(guard("files", {"file_path": path, "content": text})[0], 2, path)
+        self.assertEqual(guard("files", {"file_path": "/p/src/lib/server/admin.ts",
+                                         "content": 'import "server-only";\nprocess.env.SUPABASE_SECRET_KEY'}), (0, None))
+
+    def test_i2_dependency_add_with_flags_asks(self):
+        for cmd in ["pnpm add -D foo", "npm i -D foo", "npm install --save-dev foo", "yarn add -D foo",
+                    "bun add -d foo", "pnpm install && pnpm add zod"]:
+            self.assertEqual(guard("bash", {"command": cmd}), (0, "ask"), cmd)
+        for cmd in ["pnpm install --frozen-lockfile", "npm ci", "pnpm install && pnpm run lint"]:
+            self.assertEqual(guard("bash", {"command": cmd}), (0, None), cmd)
+
+    def test_i3_deploys_blocked(self):
+        for cmd in ["vercel", "npx vercel --yes", "vercel deploy", "vercel --prod", "netlify deploy",
+                    "wrangler deploy", "fly deploy", "firebase deploy"]:
+            self.assertEqual(guard("bash", {"command": cmd})[0], 2, cmd)
+        for cmd in ["vercel dev", "vercel env pull .env.local", "vercel whoami", "netlify dev"]:
+            self.assertEqual(guard("bash", {"command": cmd})[0], 0, cmd)
+
+    def test_i5_snapshot_removal_and_baselines(self):
+        for cmd in ["rm tests/e2e/visual.spec.ts-snapshots/home-light-desktop-darwin.png",
+                    "git rm -r tests/e2e/visual.spec.ts-snapshots", "mv tests/e2e/__screenshots__/a.png /tmp"]:
+            self.assertEqual(guard("bash", {"command": cmd})[0], 2, cmd)
+        for cmd in ["make baselines", "UPDATE_BASELINES=1 pnpm exec playwright test"]:
+            self.assertEqual(guard("bash", {"command": cmd}), (0, "ask"), cmd)
+
+    def test_i4_threshold_files_ask(self):
+        for path in ["/p/playwright.config.ts", "/p/playwright.playbook.config.ts", "/p/scripts/lighthouse-config.mjs"]:
+            self.assertEqual(guard("files", {"file_path": path, "content": "x"}), (0, "ask"), path)

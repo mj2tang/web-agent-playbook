@@ -20,6 +20,8 @@ description: The gates a web change must pass and what each one catches - make c
 
 ## Rules
 - **SKIPPED is not a pass.** The gate scripts exit 4 when they skip (missing tool, script, or config). Report it, and the supervisor treats it as a finding until a human accepts the gap (`GATES_ALLOW_SKIP=1`).
+- **Thresholds live in `configs/gates.json`** (axe impacts, screenshot diff ratio, Lighthouse budgets); the Playwright config and the a11y spec read it, and `make perf` generates its Lighthouse config from it.
+- **Baselines are committed.** A missing screenshot baseline fails `ui-check`; only a human runs `make baselines`.
 - **Never edit to get green:** `configs/gates.json`, snapshot files, axe rule disables, `test.skip`, `eslint-disable`, and `@ts-expect-error` added to pass are review findings. The guard hook protects gates and snapshots.
 - **Run gates in the worker's checkout** (`make -C <worktree> ...`), on the committed HEAD.
 - A flaky e2e test is a bug: fix the race (web-first assertions, no fixed sleeps), don't retry it into green.

@@ -19,7 +19,7 @@
 
 ## Hooks
 - Deterministic automation in `settings.json` → `hooks`: `PreToolUse` (exit 2 blocks with a message to Claude), `PostToolUse`, `Stop`, `SessionStart`, `PreCompact`, …
-- This playbook's `guard.py` blocks push/reset/deploys and any linked or remote Supabase command (`link`, `db push` without `--local`, `functions deploy`, `--db-url`, non-local `postgres://`), blocks the service-role key in client code, protects `.env*`, `configs/gates.json`, and visual snapshots, asks before new dependencies, snapshot updates, and edits to committed migrations, and runs prettier on edited files.
+- This playbook's `guard.py` blocks push/reset/deploys and any linked or remote Supabase command (`link`, `db push` without `--local`, `functions deploy`, `--db-url`, non-local `postgres://`), blocks the service-role key in client code, protects `.env*`, `configs/gates.json`, and visual snapshots, asks before new dependencies, snapshot updates, and edits to committed migrations, and runs prettier on edited files. It splits commands on `;`, `&&`, `||`, and `|` and tokenises each one (so `npx supabase@latest db push`, `supabase --workdir . db push`, and `db push --linked; echo --local` are caught), and asks about Supabase subcommands it doesn't know. It is still a best-effort text matcher, not a sandbox: a package script or a shell function can hide a command, so keep the human-approval list in `AGENTS.md` and review what agents run.
 - Rule of thumb: must *always* happen → hook; needs judgement → skill.
 
 ## Permissions

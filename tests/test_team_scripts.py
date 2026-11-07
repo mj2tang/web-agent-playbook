@@ -107,6 +107,51 @@ class TestRunWave(unittest.TestCase):
             self.assertIn("install --frozen-lockfile", (Path(tmp) / "pnpm").read_text())
             self.assertEqual((proj / ".agent-logs/.gitignore").read_text().strip(), "*")
 
+    def run_codex_wave(self, proj: Path, tmp: Path, extra_env: dict, root: Path | None = None):
+        root = root or proj
+        (root / "tasks/T-001-x.md").write_text(
+            "---\nid: T-001\nowned_files:\n  - src/app/page.tsx\n---\n")
+        env = {**os.environ, **GIT_ENV}
+        subprocess.run(["git", "-C", str(proj), "add", "-A"], check=True, env=env)
+        subprocess.run(["git", "-C", str(proj), "commit", "-qm", "task"], check=True, env=env)
+        bin_dir = tmp / "bin"
+        bin_dir.mkdir(exist_ok=True)
+        (bin_dir / "codex").write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$ARGS_OUT"\npwd > "$PWD_OUT"\n'
+                                       'echo "// x" >> src/app/page.tsx\n')
+        (bin_dir / "pnpm").write_text('#!/bin/sh\nexit 0\n')
+        for f in bin_dir.iterdir():
+            f.chmod(0o755)
+        env.update({"PATH": f"{bin_dir}:{os.environ['PATH']}", "RUNNER": "codex", "ARGS_OUT": str(tmp / "args"),
+                    "PWD_OUT": str(tmp / "pwd"), **extra_env})
+        r = subprocess.run(["bash", str(root / "scripts/agent-team/run-wave.sh"), "T-001"], cwd=root, env=env,
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return (tmp / "args").read_text().splitlines()
+
+    def test_i6_approve_for_me_keeps_the_sandbox(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proj = Path(tmp) / "p"
+            make_project(proj)
+            args = self.run_codex_wave(proj, Path(tmp), {"CODEX_APPROVE_FOR_ME": "1"})
+            self.assertIn("--approve-for-me", args)
+            self.assertIn("workspace-write", args)
+            self.assertIn("sandbox_workspace_write.network_access=false", args)
+
+    def test_i7_run_wave_from_a_monorepo_app(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "mono"
+            app = repo / "apps/web"
+            make_project(app)  # creates its own .git; move it to the repo root
+            shutil.move(str(app / ".git"), str(repo / ".git"))
+            subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True, env={**os.environ, **GIT_ENV})
+            self.run_codex_wave(repo, Path(tmp), {}, root=app)
+            wt_app = Path((Path(tmp) / "pwd").read_text().strip())
+            self.assertEqual(wt_app.parts[-2:], ("apps", "web"))
+            committed = subprocess.run(["git", "-C", str(wt_app), "show", "--name-only", "--format=%s", "HEAD"],
+                                       capture_output=True, text=True, check=True).stdout
+            self.assertIn("apps/web/src/app/page.tsx", committed)
+            self.assertTrue((app / ".agent-logs/T-001-x.log").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
 # Gates for {{project}}. Agents and CI run the same targets (web-quality-gates skill).
-.PHONY: setup env db-start db-stop check db-check ui-check perf
+.PHONY: setup env db-start db-stop check db-check ui-check baselines perf
 
 setup:
 	pnpm install
@@ -29,6 +29,11 @@ db-check: db-start
 ui-check: env
 	pnpm exec playwright test
 
+# Human step: write missing screenshot baselines, look at them, then commit them. ui-check fails without them.
+baselines: env
+	UPDATE_BASELINES=1 pnpm exec playwright test --grep @visual
+
 perf: env
 	pnpm build
-	pnpm dlx @lhci/cli@0.16.0 autorun --config=lighthouserc.json
+	node scripts/lighthouse-config.mjs
+	pnpm dlx @lhci/cli@0.16.0 autorun --config=.lighthouserc.json
