@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from helpers import ROOT, frontmatter  # noqa: E402
 
 ML_TERMS = re.compile(r"mlflow|leakage|rebaseline|champion|databricks|uv sync", re.I)
-MIN_SKILLS = 0
+MIN_SKILLS = 32
 
 
 class TestPackaging(unittest.TestCase):
