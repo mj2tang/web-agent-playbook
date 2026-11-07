@@ -1,0 +1,31 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  playbook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: git config --global user.email ci@example.com && git config --global user.name ci
+      - run: python -m unittest discover -s tests -v
+  starter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: git config --global user.email ci@example.com && git config --global user.name ci
+      - run: python3 scripts/playbook.py new /tmp/demo --name demo --bootstrap
+      - run: make -C /tmp/demo db-check
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: /tmp/demo
+      - run: make -C /tmp/demo ui-check
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: /tmp/demo/playwright-report }

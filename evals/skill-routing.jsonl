@@ -1,0 +1,37 @@
+{"prompt": "Build the three features in tasks/EPIC.md in parallel as a team", "expect": "orchestrate-team"}
+{"prompt": "We need sharing, comments, and an activity feed this week - split it across agents", "expect": "orchestrate-team"}
+{"prompt": "Break the bookings epic into tasks the workers can pick up", "expect": "feature-spec"}
+{"prompt": "I'm the worker on tasks/T-004-archive-ui.md - start it", "expect": "worker-protocol"}
+{"prompt": "T-002 and T-003 got approved, land them on main", "expect": "merge-train"}
+{"prompt": "Record why we chose server actions over route handlers for the forms", "expect": "decision-log"}
+{"prompt": "I need to stop for today, save where the team is so we can pick it up tomorrow", "expect": "pause-and-resume"}
+{"prompt": "Before you say the checkout page is done, show me it actually works signed in and signed out", "expect": "prove-it-works"}
+{"prompt": "That RLS bug got past us twice - make sure it can never happen again", "expect": "encode-lesson"}
+{"prompt": "Get Claude and Codex to both tear apart this auth design before we merge", "expect": "interrogate"}
+{"prompt": "Add pagination to the notes list - plan it before changing anything", "expect": "plan-first"}
+{"prompt": "Add a word count under each note, test first", "expect": "tdd-loop"}
+{"prompt": "Are we done? Run everything and tell me what passes", "expect": "verify-before-done"}
+{"prompt": "The notes page shows an empty list for some users and I have no idea why", "expect": "systematic-debugging"}
+{"prompt": "We're starting a site for a small bakery - figure out what it should feel like before designing anything", "expect": "design-brief"}
+{"prompt": "Set up colours, type scale, and spacing for the site, with a dark mode", "expect": "design-tokens"}
+{"prompt": "Somebody hard-coded #3b82f6 in five components, clean that up properly", "expect": "design-tokens"}
+{"prompt": "Spec out the pricing card component before anyone builds it", "expect": "component-spec"}
+{"prompt": "The nav falls apart on phones and there's sideways scrolling at 320px", "expect": "responsive-layout"}
+{"prompt": "Is the signup page accessible? Check keyboard and screen reader use", "expect": "accessibility-audit"}
+{"prompt": "Take screenshots of the new dashboard at mobile and desktop and compare them to the spec", "expect": "visual-review"}
+{"prompt": "What should the error message say when the card is declined?", "expect": "ux-copy"}
+{"prompt": "The landing page LCP is 4 seconds, get it under budget", "expect": "frontend-performance"}
+{"prompt": "Build the contact form with validation on both client and server", "expect": "forms-and-validation"}
+{"prompt": "Design the backend for team workspaces: roles, tables, and API", "expect": "system-design-doc"}
+{"prompt": "Freeze the schema and Zod types for invoices so frontend and backend can work in parallel", "expect": "api-contract"}
+{"prompt": "How should we model orders, line items, and refunds in Postgres?", "expect": "data-modeling"}
+{"prompt": "Add an archived_at column to notes", "expect": "supabase-migrations"}
+{"prompt": "Make sure users can only see projects they're members of", "expect": "rls-policies"}
+{"prompt": "Add Google sign-in and protect the /account pages", "expect": "supabase-auth"}
+{"prompt": "Should the Stripe webhook be an edge function or a route handler?", "expect": "edge-functions-vs-rpc"}
+{"prompt": "Security check the new file upload feature before release", "expect": "security-review"}
+{"prompt": "We can't tell why the save action fails in production - add proper logging and a health check", "expect": "observability"}
+{"prompt": "Which checks does this change need before the supervisor will approve it?", "expect": "web-quality-gates"}
+{"prompt": "Fix the typo in README.md", "expect": null}
+{"prompt": "What does the useActionState hook return?", "expect": null}
+{"prompt": "Rename the variable `x` to `count` in utils.ts", "expect": null}
