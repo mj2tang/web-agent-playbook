@@ -29,7 +29,7 @@ Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent or
 | **Team and trust skills** | `orchestrate-team`, `feature-spec`, `worker-protocol`, `merge-train`, `decision-log`, `pause-and-resume`, `prove-it-works`, `encode-lesson`, `interrogate` (cross-model review), `plan-first`, `tdd-loop`, `verify-before-done`, `systematic-debugging`, `web-quality-gates` |
 | **Gates** | `make check` (ESLint, tsc, Vitest) · `make db-check` (migrations from zero, pgTAP, **RLS on every public table**, type drift) · `make ui-check` (Playwright, axe, screenshots at 375/768/1280 against committed baselines) · `make perf` (Lighthouse). Thresholds live in `configs/gates.json`. In plugged-in repos: `scripts/gates/*.sh`, which use your own `package.json` scripts and report **SKIPPED (exit 4), never a silent pass** |
 | **Guardrails** | Guard hook (best-effort command matching, [details](docs/claude-code.md#hooks)) blocks push, deploys, and linked/remote Supabase commands, asking about unknown ones; blocks the service-role key in client code; protects `.env*`, gate budgets, and snapshots; asks before new dependencies, baseline updates, Playwright config edits, and edits to applied migrations |
-| **Codex setup** | `AGENTS.md` with Code Review Rules (RLS, authz, secrets, contract drift, a11y, tokens), `.agents/skills/`, `.codex/config.toml` (local Supabase MCP + Playwright MCP), headless runner with explicit sandbox flags ([details](docs/codex.md)) |
+| **Codex setup** | `AGENTS.md` with Code Review Rules (RLS, authz, secrets, contract drift, a11y, tokens), `.agents/skills/`, the nine roles as native Codex agents (`.codex/agents/*.toml`, generated from `agents/*.md`), the guard as Codex `PreToolUse` hooks (Bash + `apply_patch`), MCP servers in `.codex/config.toml` (local Supabase, Playwright, Figma, Chrome DevTools), and a headless runner with explicit sandbox flags ([details](docs/codex.md)) |
 | **Starter** (`new`) | Next.js 16 App Router, TypeScript, Tailwind v4 with design tokens, `@supabase/ssr` auth (sign up/in/out, `src/proxy.ts` session refresh), a `notes` table with owner-only RLS and 8 pgTAP policy tests, Zod contracts, Vitest, Playwright + axe + visual specs, CI |
 | **Trust before parallelism** | Workers start at 1 and earn more from clean approvals (`scripts/agent-team/audit.py trust`); every decision lands in `.audit/decisions.tsv`; proof runs through a web **pipeline map** (`routes`, `server-actions-api`, `database-rls`, `auth`, `jobs`) |
 
@@ -56,15 +56,17 @@ Installing next to `coding-agent-playbook` in the same repo isn't supported yet;
 
 ## Use it in Codex
 
-1. `init` or `new`, then trust the project and run `codex`. Type `$` or `/skills` to see the skills; name one for fixed workflows, e.g. `$orchestrate-team build tasks/EPIC.md`.
-2. Headless workers: `RUNNER=codex scripts/agent-team/run-wave.sh T-002 T-003`. Each gets its own worktree, dependencies installed before dispatch, `--sandbox workspace-write` with no network, and the runner commits the worker's owned files (Codex's sandbox keeps `.git` read-only).
-3. Supervisor review with the gates (needs Docker/localhost/browsers, so network on):
+1. `init` or `new`, then trust the project and run `codex` **from the project root**. Type `$` or `/skills` to see the skills; name one for fixed workflows, e.g. `$orchestrate-team build tasks/EPIC.md`.
+2. **Trust the guard hooks once** (with `--guardrails`, always on for `new`): Codex shows "Hooks need review" at startup, or open `/hooks`. Until you trust them, they don't run - and headless `codex exec` skips untrusted project hooks silently (verified on codex-cli 0.167).
+3. **Agents:** the roles are native Codex agents. Codex spawns a custom agent only when asked, so name it: "spawn the `frontend-worker` agent for tasks/T-003-...". The `orchestrate-team` skill does this for you.
+4. Headless workers: `RUNNER=codex scripts/agent-team/run-wave.sh T-002 T-003`. Each gets its own worktree, dependencies installed before dispatch, `--sandbox workspace-write` with no network, and the runner commits the worker's owned files (Codex's sandbox keeps `.git` read-only).
+5. Supervisor review with the gates (needs Docker/localhost/browsers, so network on):
    ```bash
    codex exec --sandbox workspace-write -c sandbox_workspace_write.network_access=true --add-dir <worktree> \
      "Act as the supervisor defined in .claude/agents/supervisor.md. Review branch task/T-002-<slug> against tasks/T-002-<slug>.md."
    ```
-4. `@codex review` on GitHub applies the `## Code Review Rules` in `AGENTS.md`.
-5. Codex runs no hooks: the "Needs human approval" list in `AGENTS.md` and the sandbox are the guardrails.
+6. `@codex review` on GitHub applies the `## Code Review Rules` in `AGENTS.md`.
+7. Guardrails in Codex: the trusted guard hooks, the sandbox, and the "Needs human approval" list in `AGENTS.md`.
 
 ## Use it in Claude Code
 
@@ -72,6 +74,20 @@ Installing next to `coding-agent-playbook` in the same repo isn't supported yet;
 2. `claude --agent orchestrator` → "Build tasks/EPIC.md as a team."
 3. Optional: `claude mcp add playwright -- npx -y @playwright/mcp@latest` for interactive screenshots.
 4. Plugin only: `/plugin marketplace add mj2tang/web-agent-playbook`, then `/plugin install web-playbook@mj2tang`.
+
+## Pairs well with
+
+This playbook is about the team, the contract, and the gates. For visual taste and specialist guidance, add these (all work in Codex and Claude Code):
+
+| Add | For | Install |
+|---|---|---|
+| [Impeccable](https://github.com/pbakaus/impeccable) | Auditing and polishing UI against an anti-pattern library; stores your design context | see its README (`/teach-impeccable` once per project) |
+| [Anthropic `frontend-design`](https://github.com/anthropics/skills) | Distinctive new pages and components | `npx skills add anthropics/skills --skill frontend-design --agent codex` |
+| [Vercel `agent-skills`](https://github.com/vercel-labs/agent-skills) | `web-design-guidelines` (UI audit with `file:line` findings) and `react-best-practices` | `npx skills add vercel-labs/agent-skills` |
+| [OpenAI Build Web Apps plugin](https://github.com/openai/plugins) | shadcn/ui, Stripe, Supabase, React best practices, frontend testing | `/plugins` in Codex |
+| [shadcn MCP](https://ui.shadcn.com/mcp) | Browse and install registry components | `pnpm dlx shadcn@latest mcp init --client codex` |
+
+Our `design-*` skills set the process (brief → tokens → specs → review); these supply taste and component knowledge. If two skills disagree, the project's `docs/design/brief.md` and tokens win.
 
 ## The 10 rules (web edition)
 

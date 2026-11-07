@@ -12,5 +12,11 @@ From "make it look good" to a shipped, accessible UI.
    - `visual-review`: compare screenshots to the spec; snapshots change only with human approval.
    - `frontend-performance`: route JS and Core Web Vitals within `configs/gates.json`.
 
+## Specialist skills that pair well
+Impeccable (audit and polish with an anti-pattern library), Anthropic's `frontend-design` (distinctive new pages), and Vercel's `web-design-guidelines` (UI audit with `file:line` findings) add taste and rules on top of this workflow; install commands are in the README. Keep the brief and tokens as the source of truth when their advice conflicts.
+
+## From Figma
+With the Figma MCP server (in `.codex/config.toml`; `claude mcp add` for Claude Code), the ui-designer reads a frame with `get_design_context`, maps it to existing tokens and components, and writes the component spec; workers build from the spec. `generate_figma_design` sends the running UI back to Figma for review.
+
 ## Avoiding the generic look
 No default purple/blue gradient hero, no emoji as icons, no three identical feature cards as the only layout, one typeface pair chosen from the brief, real copy, and an accent used sparingly. Decide density, shape language, and motion in the brief, then hold to it.

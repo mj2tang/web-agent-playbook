@@ -142,3 +142,65 @@ class TestGuardReviewFindings(unittest.TestCase):
     def test_i4_threshold_files_ask(self):
         for path in ["/p/playwright.config.ts", "/p/playwright.playbook.config.ts", "/p/scripts/lighthouse-config.mjs"]:
             self.assertEqual(guard("files", {"file_path": path, "content": "x"}), (0, "ask"), path)
+
+
+def patch(*files):
+    """A Codex apply_patch payload: files = (op, path, added_lines)."""
+    out = ["*** Begin Patch"]
+    for op, path, lines in files:
+        out.append(f"*** {op} File: {path}")
+        if op == "Update":
+            out.append("@@")
+            out.append("-old")
+        out += [f"+{line}" for line in lines]
+    out.append("*** End Patch")
+    return {"command": "\n".join(out)}
+
+
+class TestGuardCodexApplyPatch(unittest.TestCase):
+    """Codex sends file edits as tool_name apply_patch with the whole patch in tool_input.command."""
+
+    def test_blocks_protected_paths_in_patch(self):
+        for path in [".env.local", "configs/gates.json", "tests/e2e/visual.spec.ts-snapshots/a.png"]:
+            self.assertEqual(guard("files", patch(("Update", path, ["x"])))[0], 2, path)
+        self.assertEqual(guard("files", patch(("Delete", "configs/gates.json", [])))[0], 2)
+
+    def test_blocks_service_role_added_to_client_file(self):
+        p = patch(("Add", "src/app/admin/page.tsx", ['"use client";', "const k = process.env.SUPABASE_SECRET_KEY"]))
+        self.assertEqual(guard("files", p)[0], 2)
+        ok = patch(("Add", "src/lib/server/admin.ts", ['import "server-only";', "process.env.SUPABASE_SECRET_KEY"]))
+        self.assertEqual(guard("files", ok), (0, None))
+
+    def test_checks_every_file_in_a_multi_file_patch(self):
+        p = patch(("Update", "src/app/page.tsx", ["<p>hi</p>"]), ("Update", "playwright.config.ts", ["x"]))
+        self.assertEqual(guard("files", p), (0, "ask"))
+        self.assertEqual(guard("files", patch(("Update", "src/app/page.tsx", ["<p>hi</p>"]))), (0, None))
+
+    def test_asks_before_patching_applied_migration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            mig = repo / "supabase/migrations/20260101000000_a.sql"
+            mig.parent.mkdir(parents=True)
+            mig.write_text("create table a();\n")
+            for args in (["init", "-q"], ["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "a"]):
+                subprocess.run(["git", "-C", tmp, *args], check=True, capture_output=True)
+            p = patch(("Update", "supabase/migrations/20260101000000_a.sql", ["x"]))
+            self.assertEqual(guard("files", p, cwd=repo), (0, "ask"))
+
+
+class TestGuardCodexPayloadShape(unittest.TestCase):
+    """Full PreToolUse events as codex-rs builds them (exec_command.rs / apply_patch.rs, Nov 2026)."""
+
+    def run_event(self, mode, event):
+        p = subprocess.run([*GUARD, mode], input=json.dumps(event), capture_output=True, text=True)
+        return p.returncode, p.stderr
+
+    def test_codex_bash_and_apply_patch_events(self):
+        base = {"hook_event_name": "PreToolUse", "cwd": "/p", "model": "m", "permission_mode": "default",
+                "session_id": "s", "tool_use_id": "t", "transcript_path": "/x", "turn_id": "u"}
+        rc, err = self.run_event("bash", {**base, "tool_name": "Bash", "tool_input": {"command": "supabase db push"}})
+        self.assertEqual(rc, 2)
+        self.assertIn("web-playbook guard", err)
+        rc, _ = self.run_event("files", {**base, "tool_name": "apply_patch", "tool_input": {
+            "command": "*** Begin Patch\n*** Update File: configs/gates.json\n@@\n-a\n+b\n*** End Patch"}})
+        self.assertEqual(rc, 2)

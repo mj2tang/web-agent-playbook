@@ -7,9 +7,10 @@ exit 0 allows it. Modes:
            Supabase); force a human prompt ("ask") for dependency installs, snapshot updates,
            and migration-history repair. Commands are split on ; && || | and newlines and
            checked one simple command at a time. This is a best-effort text matcher, not a
-           sandbox: Codex has no hooks at all, and a determined script can hide a command.
-  files    PreToolUse(Edit|Write): block edits to protected paths and the service-role key in
-           client code; ask before editing a migration that is already committed
+           sandbox: a determined script can hide a command. Works for Claude Code and Codex hooks
+           (Codex sends shell commands as Bash {command} and file edits as apply_patch {command: patch}).
+  files    PreToolUse(Edit|Write, Codex apply_patch): block edits to protected paths and the
+           service-role key in client code; ask before editing a migration that is already committed
   format   PostToolUse(Edit|Write): best-effort prettier on the edited file
 """
 import json
@@ -168,6 +169,52 @@ def deploy_verdict(toks):
     return None
 
 
+PATCH_FILE = re.compile(r"^\*\*\* (Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$")
+
+
+def edited_files(tool_input, cwd):
+    """(path, added text, deleting) for each file a tool call writes.
+
+    Claude Code: Edit/Write/MultiEdit/NotebookEdit carry file_path plus content/new_string/edits.
+    Codex: apply_patch carries the whole patch in tool_input.command (*** Add/Update/Delete File: ...).
+    """
+    patch = tool_input.get("command") or ""
+    if "*** Begin Patch" in patch:
+        files, current = [], None
+        for line in patch.splitlines():
+            m = PATCH_FILE.match(line)
+            if m:
+                rel = (m.group(2) or m.group(3)).strip()
+                current = [os.path.join(cwd, rel) if not os.path.isabs(rel) else rel, [], m.group(1) == "Delete"]
+                files.append(current)
+            elif current is not None and line.startswith("+"):
+                current[1].append(line[1:])
+        return [(path, "\n".join(lines), deleting) for path, lines, deleting in files]
+    path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
+    parts = [tool_input.get(k) or "" for k in ("content", "new_string", "new_source")]
+    parts += [e.get("new_string") or "" for e in tool_input.get("edits") or [] if isinstance(e, dict)]
+    return [(path, "\n".join(parts), False)]
+
+
+def file_verdict(path, text, cwd, deleting=False):
+    for pattern, reason in PROTECTED_PATHS:
+        if re.search(pattern, path):
+            return "block", f"{path}: {reason}"
+    try:
+        existing = open(path, encoding="utf-8", errors="ignore").read(4096) if os.path.isfile(path) else ""
+    except OSError:
+        existing = ""
+    client = CLIENT_FILE.search(path) or re.search(r"""^\s*['"]use client['"]""", text + "\n" + existing, re.M)
+    if client and SERVICE_ROLE.search(text):
+        return "block", f"{path}: the service-role/secret key bypasses RLS and must stay in server-only modules (src/lib/server/)"
+    for pattern, reason in ASK_PATHS:
+        if re.search(pattern, path):
+            return "ask", f"editing {os.path.basename(path)}: {reason}"
+    if re.search(r"(^|/)supabase/migrations/[^/]+\.sql$", path) and committed(path, cwd):
+        return "ask", f"{'deleting' if deleting else 'editing'} an applied migration ({os.path.basename(path)}); write a new migration instead"
+    return None
+
+
 def remote_postgres(cmd):
     for m in re.finditer(r"postgres(?:ql)?://(?:[^@\s/]*@)?([^:/\s?]+)", cmd):
         if m.group(1) not in LOCAL_HOSTS:
@@ -217,25 +264,15 @@ def main():
         if asks:
             ask(asks[0])
     elif mode == "files":
-        path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
-        for pattern, reason in PROTECTED_PATHS:
-            if re.search(pattern, path):
-                block(f"{path}: {reason}")
-        parts = [tool_input.get(k) or "" for k in ("content", "new_string", "new_source")]
-        parts += [e.get("new_string") or "" for e in tool_input.get("edits") or [] if isinstance(e, dict)]
-        text = "\n".join(parts)
-        try:
-            existing = open(path, encoding="utf-8", errors="ignore").read(4096) if os.path.isfile(path) else ""
-        except OSError:
-            existing = ""
-        client = CLIENT_FILE.search(path) or re.search(r"""^\s*['"]use client['"]""", text + "\n" + existing, re.M)
-        if client and SERVICE_ROLE.search(text):
-            block(f"{path}: the service-role/secret key bypasses RLS and must stay in server-only modules (src/lib/server/)")
-        for pattern, reason in ASK_PATHS:
-            if re.search(pattern, path):
-                ask(f"editing {os.path.basename(path)}: {reason}")
-        if re.search(r"(^|/)supabase/migrations/[^/]+\.sql$", path) and committed(path, cwd):
-            ask(f"editing an applied migration ({os.path.basename(path)}); write a new migration instead")
+        asks = []
+        for path, text, deleting in edited_files(tool_input, cwd):
+            verdict = file_verdict(path, text, cwd, deleting)
+            if verdict and verdict[0] == "block":
+                block(verdict[1])
+            if verdict:
+                asks.append(verdict[1])
+        if asks:
+            ask(asks[0])
     elif mode == "format":
         path = tool_input.get("file_path", "")
         prettier = os.path.join(cwd, "node_modules", ".bin", "prettier")

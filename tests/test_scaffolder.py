@@ -1,6 +1,8 @@
 """Scaffolder: init into existing repos, sync, and (Task 8) new."""
 
 import json
+import re
+import tomllib
 import subprocess
 import sys
 import tempfile
@@ -150,6 +152,62 @@ class TestSync(unittest.TestCase):
             run("init", tmp)
             run("sync", tmp)
             self.assertFalse((Path(tmp) / ".agents/skills/rls-policies").exists())
+
+
+AGENT_NAMES = sorted(p.stem for p in (ROOT / "agents").glob("*.md"))
+
+
+def md_body(path: Path) -> str:
+    return re.sub(r"^---\n.*?\n---\n", "", path.read_text(), count=1, flags=re.S).strip()
+
+
+class TestCodexSetup(unittest.TestCase):
+    def check_agents(self, proj: Path):
+        for name in AGENT_NAMES:
+            data = tomllib.loads((proj / f".codex/agents/{name}.toml").read_text())
+            self.assertEqual(data["name"], name)
+            self.assertTrue(data["description"])
+            self.assertEqual(data["developer_instructions"].strip(), md_body(ROOT / f"agents/{name}.md"))
+
+    def test_new_has_codex_hooks_agents_and_mcp(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proj = Path(tmp) / "site"
+            run("new", str(proj), "--name", "site")
+            cfg = tomllib.loads((proj / ".codex/config.toml").read_text())
+            matchers = {h["matcher"]: h["hooks"][0]["command"] for h in cfg["hooks"]["PreToolUse"]}
+            self.assertEqual(matchers["Bash"], "python3 .claude/hooks/guard.py bash")
+            self.assertEqual(matchers["apply_patch"], "python3 .claude/hooks/guard.py files")
+            self.assertEqual(set(cfg["mcp_servers"]), {"supabase", "playwright", "figma", "chrome-devtools"})
+            self.assertEqual(cfg["mcp_servers"]["figma"]["url"], "https://mcp.figma.com/mcp")
+            self.check_agents(proj)
+
+    def test_init_without_guardrails_has_agents_but_no_hooks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run("init", tmp)
+            cfg = tomllib.loads((Path(tmp) / ".codex/config.toml").read_text())
+            self.assertNotIn("hooks", cfg)
+            self.check_agents(Path(tmp))
+
+    def test_init_guardrails_with_existing_codex_config_uses_sidecar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / ".codex").mkdir()
+            (Path(tmp) / ".codex/config.toml").write_text('model = "mine"\n')
+            out = run("init", tmp, "--guardrails")
+            self.assertEqual((Path(tmp) / ".codex/config.toml").read_text(), 'model = "mine"\n')
+            side = tomllib.loads((Path(tmp) / ".codex/web-playbook.config.toml").read_text())
+            self.assertIn("PreToolUse", side["hooks"])
+            self.assertIn("[[hooks.PreToolUse]]", out)
+
+    def test_sync_updates_codex_agents_and_keeps_edits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run("init", tmp)
+            agent = Path(tmp) / ".codex/agents/supervisor.toml"
+            agent.unlink()
+            edited = Path(tmp) / ".codex/agents/ui-designer.toml"
+            edited.write_text(edited.read_text() + "\n# mine\n")
+            run("sync", tmp)
+            self.assertTrue(agent.exists())
+            self.assertIn("# mine", edited.read_text())
 
 
 if __name__ == "__main__":

@@ -35,7 +35,7 @@ EXCLUDE = {"node_modules", ".next", ".turbo", "dist", "build", "coverage", ".ven
            "playwright-report", "test-results"}
 FOOTPRINT = (".agents/", ".claude/agents/", ".claude/skills", ".claude/hooks/", "tasks/", "scripts/agent-team/",
              "scripts/gates/", "docs/pipeline-map/", "configs/team.json", "configs/gates.json", "AGENTS.web-playbook.md",
-             ".claude/settings.json", ".codex/config.toml", ".codex/web-playbook.config.toml",
+             ".claude/settings.json", ".codex/config.toml", ".codex/web-playbook.config.toml", ".codex/agents/",
              "supabase/tests/rls_enabled.test.sql", "playwright.playbook.config.ts", "tests/e2e-playbook/",
              "CLAUDE.md", "AGENTS.md")
 CREATE_ONLY = ("CLAUDE.md", ".codex/config.toml")  # may be created, never modified

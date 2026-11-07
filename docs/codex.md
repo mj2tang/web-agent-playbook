@@ -36,12 +36,24 @@
     "Act as the supervisor defined in .claude/agents/supervisor.md. Review branch task/T-001-<slug> against tasks/T-001-<slug>.md."
   ```
 
+## Custom agents
+- Codex custom agents are TOML files in `.codex/agents/` (project) or `~/.codex/agents/`: `name`, `description`, `developer_instructions`, optional `model`, `model_reasoning_effort`, and feature switches. Sandbox, approvals, and MCP servers always come from the parent session.
+- This playbook generates one per role from `agents/*.md` (`playbook.py init`/`new`; `sync` updates them and keeps your edits). Verified on codex-cli 0.167: Codex lists all nine next to its built-ins (`default`, `explorer`, `worker`).
+- Codex spawns a custom agent only when the prompt, `AGENTS.md`, or a skill asks for it by name. Cap parallel threads with `[agents] max_concurrent_threads_per_session` in `.codex/config.toml`.
+
+## Hooks
+- Hooks are stable and on by default (`codex features list` shows `hooks stable true` on 0.167). They go in `[hooks]` in `config.toml` (user or project layer) or `hooks.json`; events include `PreToolUse`, `PostToolUse`, `SessionStart`, `Stop`, `SubagentStart`/`SubagentStop`.
+- Payloads follow Claude Code's shape: shell commands arrive as `tool_name: "Bash"`, `tool_input: {"command": ...}`; file edits as `tool_name: "apply_patch"`, `tool_input: {"command": "<the whole patch>"}`. Exit 2 with stderr blocks; `hookSpecificOutput.permissionDecision: "ask"` asks. So this playbook registers the same `guard.py` for Codex (`matcher = "Bash"` and `matcher = "apply_patch"`), which parses patches file by file.
+- **Trust:** Codex hashes each hook and runs it only after you trust it (startup review or `/hooks`). Verified: a headless `codex exec` in a fresh project skipped the untrusted project hooks without a warning and ran `git push`. Trust them once interactively before running `run-wave.sh` with `RUNNER=codex`. `--dangerously-bypass-hook-trust` exists for vetted automation; don't use it on repos you haven't read.
+- Hook commands run from the session's working directory, so start Codex at the install root.
+
 ## Approvals and sandbox
 - Least privilege that keeps you flowing: read-only to explore, workspace-write to implement, full access only inside an externally sandboxed environment.
 - Keep network off unless a task needs it; allowlist the minimum domains.
 
 ## MCP servers
-- `.codex/config.toml` (rendered by this playbook) adds the **local** Supabase MCP endpoint (`url = "http://127.0.0.1:54321/mcp"`, served by `supabase start`) and the Playwright MCP server for screenshots. Never point Supabase MCP at a hosted project without a human.
+- `.codex/config.toml` (rendered by this playbook) adds the **local** Supabase MCP endpoint (`url = "http://127.0.0.1:54321/mcp"`, served by `supabase start`), Playwright (screenshots, interaction), Chrome DevTools (console, network, performance traces, Lighthouse), and Figma (`https://mcp.figma.com/mcp`: `get_design_context` to read designs, `generate_figma_design` to send running UI back to canvas; signs in on first use). Servers that can't connect (Supabase not started, Figma not signed in) log an error at startup and are skipped.
+- The design loop OpenAI and Figma recommend: read the Figma selection, build with your design-system components, then verify in a real browser against the screenshots at each breakpoint (`visual-review`), not just a passing build. Never point Supabase MCP at a hosted project without a human.
 - `codex mcp add` writes to your user config instead, if the project config isn't picked up.
 
 ## Plugins

@@ -52,7 +52,7 @@
 - Wave 0: `system-architect` freezes the contract (design doc, migrations + RLS + pgTAP, types, Zod schemas); `ui-designer` the brief, tokens, and component specs. Workers build against them and never change them.
 - Orchestrator (`claude --agent orchestrator`, or `$orchestrate-team` in Codex) plans tasks and dispatches `frontend-worker` / `backend-worker`, each in its own worktree on `task/<id>-<slug>`; `supervisor` reviews every branch, with `security-reviewer` for auth/RLS/server actions and `a11y-reviewer` for UI. Protocols: skills `orchestrate-team`, `worker-protocol`, `merge-train`.
 - Read `tasks/<id>.md` before working on a task; keep its status current.
-- Codex headless workers: `RUNNER=codex scripts/agent-team/run-wave.sh T-001` (no network, runner commits). Codex supervisor: `codex exec --sandbox workspace-write -c sandbox_workspace_write.network_access=true --add-dir <worktree> "Act as the supervisor in .claude/agents/supervisor.md ..."`.
+- Codex: the roles are native agents in `.codex/agents/`; spawn them by name ("spawn the `backend-worker` agent for tasks/T-002-..."), since Codex never spawns custom agents on its own. Guard hooks run only after you trust them once (`/hooks`). Headless workers: `RUNNER=codex scripts/agent-team/run-wave.sh T-001` (no network, runner commits). Codex supervisor: `codex exec --sandbox workspace-write -c sandbox_workspace_write.network_access=true --add-dir <worktree> "Act as the supervisor in .claude/agents/supervisor.md ..."`.
 
 ## Code Review Rules
 ### Authorization

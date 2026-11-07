@@ -31,6 +31,8 @@
 
 ## Seeing the UI
 - Add the Playwright MCP server (`claude mcp add playwright -- npx -y @playwright/mcp@latest`) so agents can navigate, resize, and screenshot pages during `visual-review`.
+- Chrome DevTools for console, network, and performance traces: `claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest`.
+- Figma for design context: `claude mcp add --transport http figma https://mcp.figma.com/mcp`.
 
 ## Session habits
 - Plan mode (Shift+Tab) for non-trivial work; `/clear` between tasks; `/compact` on long sessions.

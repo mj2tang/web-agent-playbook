@@ -18,3 +18,13 @@ url = "http://127.0.0.1:54321/mcp"
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
+
+# Figma: read designs (get_design_context) and send running UI back to canvas (generate_figma_design).
+# Remote server; it asks you to sign in to Figma the first time.
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"
+
+# Chrome DevTools: console, network, performance traces, and Lighthouse in a real Chrome (debugging, perf).
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["-y", "chrome-devtools-mcp@latest"]

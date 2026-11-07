@@ -33,6 +33,53 @@ POINTER = "See AGENTS.web-playbook.md for the web agent team's rules, gates, and
 SUPABASE_SKILLS = {"supabase-migrations", "rls-policies", "supabase-auth", "edge-functions-vs-rpc"}
 PLAYWRIGHT_CONFIGS = ("playwright.config.ts", "playwright.config.js", "playwright.config.mjs")
 UI_DEV_DEPS = ("@playwright/test", "@axe-core/playwright")
+# Codex runs the same guard as Claude Code: shell commands arrive as Bash {command}, file edits as
+# apply_patch {command: <patch>}. Commands run from the session's working directory (the install root).
+CODEX_HOOKS = """
+# Guardrails (web-agent-playbook): the same guard.py Claude Code uses. Codex asks you to review and trust
+# these hooks once (/hooks); untrusted hooks don't run.
+[[hooks.PreToolUse]]
+matcher = "Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python3 .claude/hooks/guard.py bash"
+timeout = 30
+
+[[hooks.PreToolUse]]
+matcher = "apply_patch"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python3 .claude/hooks/guard.py files"
+timeout = 30
+"""
+REASONING_EFFORT = {"opus": "high", "sonnet": "medium", "haiku": "low"}
+
+
+def toml_string(text: str, multiline: bool = False) -> str:
+    if multiline and "\'\'\'" not in text:
+        return "\'\'\'\n" + text + "\'\'\'"
+    return json.dumps(text)  # JSON string escapes are valid TOML basic strings
+
+
+def codex_agent_toml(md: Path) -> str:
+    """A Codex custom agent (.codex/agents/<name>.toml) from a Claude Code subagent markdown file."""
+    m = re.match(r"^---\n(.*?)\n---\n(.*)$", md.read_text(), re.S)
+    fields = dict(line.split(": ", 1) for line in m.group(1).splitlines() if ": " in line)
+    lines = [f"# Generated from agents/{md.name} by web-agent-playbook; `playbook.py sync` updates it.",
+             f"name = {toml_string(fields['name'])}",
+             f"description = {toml_string(fields['description'])}"]
+    effort = REASONING_EFFORT.get(fields.get("model", "").strip())
+    if effort:
+        lines.append(f"model_reasoning_effort = {toml_string(effort)}")
+    lines.append(f"developer_instructions = {toml_string(m.group(2).strip() + chr(10), multiline=True)}")
+    return "\n".join(lines) + "\n"
+
+
+def install_codex_agents(s: "Scaffolder") -> None:
+    for md in sorted((ROOT / "agents").glob("*.md")):
+        s.write(f".codex/agents/{md.stem}.toml", codex_agent_toml(md), managed=True)
 
 # Permission tiers. Existing repos get CORE (the playbook's own scripts and gates) unless they opt in.
 PERMISSIONS_CORE = {"allow": [
@@ -258,11 +305,16 @@ def install_agent_setup(s: Scaffolder, mode: str, *, profiles: set[str], guardra
     s.copy_tree(cfg / "docs", "docs")  # pipeline map: project-owned
     s.copy_tree(cfg / "configs", "configs")
     s.copy_tree(cfg / "scripts", "scripts", managed=True)
+    install_codex_agents(s)
     codex = s.render((cfg / ".codex/config.toml").read_text())
+    codex_hooks = guardrails and mode == "vendor"
+    if codex_hooks:
+        codex += CODEX_HOOKS
     if s.write_or_sidecar(".codex/config.toml", ".codex/web-playbook.config.toml", codex):
         s.notes.append("codex: your .codex/config.toml was not touched. Copy the [mcp_servers.*] tables you want "
                        "from .codex/web-playbook.config.toml:\n" +
-                       "".join(f"    {line}\n" for line in codex.splitlines() if line.startswith("[mcp_servers")))
+                       "".join(f"    {line}\n" for line in codex.splitlines() if line.startswith("[mcp_servers")) +
+                       ("  and the guard hooks (both [[hooks.PreToolUse]] blocks):" + CODEX_HOOKS if codex_hooks else ""))
     if "supabase" in profiles:
         s.copy_tree(ROOT / "templates/profiles/supabase", "")
     if existing_repo and "ui" in profiles:
@@ -389,6 +441,8 @@ def cmd_sync(a: argparse.Namespace) -> int:
             s.write(".claude/hooks/guard.py", (ROOT / "hooks/scripts/guard.py").read_text(), managed=True,
                     mode=0o755)
     s.copy_tree(ROOT / "templates/agent-config/scripts", "scripts", managed=True)
+    if any(k.startswith(".codex/agents/") for k in old):
+        install_codex_agents(s)
     # Keep the rest of the lock (instructions, codex config) so later syncs still know they're untouched.
     for rel, digest in old.items():
         s.lock.setdefault(rel, digest)
