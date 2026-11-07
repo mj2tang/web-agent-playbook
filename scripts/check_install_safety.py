@@ -34,7 +34,7 @@ PROJECTS = [Path(p).resolve() for p in sys.argv[3:]]
 EXCLUDE = {"node_modules", ".next", ".turbo", "dist", "build", "coverage", ".venv", "__pycache__",
            "playwright-report", "test-results"}
 FOOTPRINT = (".agents/", ".claude/agents/", ".claude/skills", ".claude/hooks/", "tasks/", "scripts/agent-team/",
-             "scripts/gates/", "docs/pipeline-map/", "configs/team.json", "configs/gates.json", "AGENTS.web-playbook.md",
+             "scripts/gates/", "docs/pipeline-map/", "docs/solutions/", "configs/team.json", "configs/gates.json", "AGENTS.web-playbook.md",
              ".claude/settings.json", ".codex/config.toml", ".codex/web-playbook.config.toml", ".codex/agents/",
              "supabase/tests/rls_enabled.test.sql", "playwright.playbook.config.ts", "tests/e2e-playbook/",
              "CLAUDE.md", "AGENTS.md")

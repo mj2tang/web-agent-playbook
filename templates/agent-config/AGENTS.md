@@ -18,7 +18,7 @@
 - `src/lib/supabase/` server/browser clients + session-refresh helper for `src/proxy.ts` · `src/lib/server/` server-only code · `src/lib/contracts/` Zod schemas · `src/lib/database.types.ts` generated
 - `supabase/migrations/` schema + RLS · `supabase/tests/` pgTAP · `supabase/seed.sql` local data
 - `tests/unit/` Vitest · `tests/e2e/` Playwright (+ axe, `@visual` screenshots)
-- `PRODUCT.md` + `DESIGN.md` (repo root) design context · `docs/design/` system design, component specs · `docs/pipeline-map/` entry points and proof
+- `PRODUCT.md` + `DESIGN.md` (repo root) design context · `docs/design/` system design, component specs · `docs/pipeline-map/` entry points and proof · `docs/solutions/` lessons learned (read before planning)
 - `tasks/` agent task board · `configs/` team and gate budgets
 
 ## Conventions

@@ -16,6 +16,7 @@ Copy `tasks/_TEMPLATE.md` to `tasks/T-NNN-<slug>.md` and fill every field:
   - `make ui-check` passes: axe has no serious/critical issues on `/notes`, and screenshots at 375/768/1280 match `docs/design/components/note-card.md`
   - `/notes` JS stays within the route budget in `configs/gates.json`
 - **Depends on:** task IDs that must be `done` first.
+- **Known pitfalls:** links to matching `docs/solutions/` notes (search by area and keyword before writing the task).
 
 ## Decomposition order for web work
 1. Contract (system-architect): schema + RLS + Zod + system design doc, with pgTAP tests. Design (ui-designer): brief, tokens, component specs.

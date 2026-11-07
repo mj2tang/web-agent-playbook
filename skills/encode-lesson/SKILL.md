@@ -19,6 +19,7 @@ Agents skip text; they can't skip a failing check. Every correction is a signal 
 4. **A guard-hook rule**: block the action itself (`.claude/hooks/guard.py` patterns: dangerous commands, protected paths).
 5. **A canonical helper or script**: one blessed way to do the thing, so agents copy it.
 6. **Text in `AGENTS.md`** (or a skill): only when it genuinely needs judgment. Add the failure example next to the rule.
+7. **A solution note** in `docs/solutions/<area>-<slug>.md` (template in `docs/solutions/README.md`): for knowledge no mechanism can hold - a third-party quirk, a misleading error, a decision that keeps getting re-argued. Also write one when you add a mechanism above, linking it, so the next planner knows why it exists. Planning skills read this folder first, so the lesson compounds.
 
 Agents copy whatever the surrounding code does, so a weak guard becomes the next template. Prefer the higher rung even if it's a bit more work.
 

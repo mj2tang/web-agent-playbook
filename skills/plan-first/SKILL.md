@@ -5,7 +5,7 @@ description: Explore the codebase read-only and produce a concrete step-by-step 
 
 # Plan first
 
-1. **Explore** read-only: entry points, the modules involved, existing patterns and tests.
+1. **Explore** read-only: entry points, the modules involved, existing patterns and tests, and past lessons in `docs/solutions/` (`grep -ril <keyword> docs/solutions`) - cite any that apply in the plan.
 2. **Write the plan:**
    - Goal and non-goals
    - Steps, each with: files touched, the change, how to verify it (command + expected result)

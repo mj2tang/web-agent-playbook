@@ -8,6 +8,7 @@ description: Write the system design doc for a feature or new app before code - 
 The design doc is the argument; the contract (`api-contract`) is what it freezes.
 
 ## Procedure
+0. **Read past lessons:** `grep -ril` the feature's areas (`auth`, `rls`, `migrations`, ...) in `docs/solutions/` and design around them.
 1. **Copy** `assets/system-design-template.md` to `docs/design/system.md` (or `docs/design/<feature>.md`).
 2. **Goals / non-goals / anti-goals** - one line each, user-visible.
 3. **Roles:** who is `anon`, who is `authenticated`, any app roles (owner, member, admin) and how they are stored (a `memberships` table, not JWT custom claims, unless there's a reason).

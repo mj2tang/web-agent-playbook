@@ -128,6 +128,18 @@ class TestInit(unittest.TestCase):
         self.assertTrue((self.repo / ".agents/skills/tdd-loop/SKILL.md").exists())
 
 
+class TestSolutions(unittest.TestCase):
+    """Compounding learnings (after EveryInc/compound-engineering): docs/solutions/, read before planning."""
+
+    def test_init_installs_solutions_readme_and_skills_use_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run("init", tmp)
+            readme = (Path(tmp) / "docs/solutions/README.md").read_text()
+            self.assertIn("## Template", readme)
+        for skill in ("encode-lesson", "plan-first", "feature-spec", "system-design-doc"):
+            self.assertIn("docs/solutions/", (ROOT / f"skills/{skill}/SKILL.md").read_text(), skill)
+
+
 class TestSync(unittest.TestCase):
     def test_sync_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
