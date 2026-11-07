@@ -114,6 +114,7 @@ Our `design-*` skills set the process (brief → tokens → specs → review); t
 | [Codex](docs/codex.md) | AGENTS.md, skills, sandbox flags verified on 0.167, headless runs, MCP |
 | [Claude Code](docs/claude-code.md) | Subagents, skills, hooks, permissions, plugins |
 | [Skill routing evals](evals/) | One routing case per skill plus near-miss negatives |
+| [Landscape](docs/landscape.md) | What we took from superpowers, ECC, gstack, Impeccable, ui-ux-pro-max, spec-kit, compound-engineering, oh-my-codex, and others |
 | [Resources](resources.md) | Links |
 
 ## Repository layout
