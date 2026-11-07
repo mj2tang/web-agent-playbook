@@ -77,3 +77,38 @@ class TestDesignContextFiles(unittest.TestCase):
                 if "superpowers" not in path.parts and "docs/design/brief.md" in path.read_text():
                     stale.append(str(path.relative_to(ROOT)))
         self.assertEqual(stale, [])
+
+
+class TestWebMode(unittest.TestCase):
+    """web-mode: a router with playbooks and a principles index (after Lauren Tan's pstack poteto-mode)."""
+
+    MODE = ROOT / "skills/web-mode"
+    PLAYBOOKS = ["investigation", "bug-fix", "feature", "refactoring", "prototype", "visual-parity", "perf-issue", "team"]
+
+    def test_every_playbook_exists_is_listed_and_ends_with_a_reply(self):
+        skill = (self.MODE / "SKILL.md").read_text()
+        for name in self.PLAYBOOKS:
+            path = self.MODE / f"playbooks/{name}.md"
+            self.assertTrue(path.exists(), name)
+            self.assertIn(f"playbooks/{name}.md", skill, name)
+            text = path.read_text()
+            self.assertRegex(text, r"(?m)^1\. ", name)
+            self.assertIn("**Reply:**", text, name)
+        self.assertEqual(sorted(p.stem for p in (self.MODE / "playbooks").glob("*.md")), sorted(self.PLAYBOOKS))
+
+    def test_explicit_invocation_only_in_both_harnesses(self):
+        self.assertEqual(frontmatter(self.MODE / "SKILL.md").get("disable-model-invocation"), "true")
+        self.assertIn("allow_implicit_invocation: false", (self.MODE / "agents/openai.yaml").read_text())
+
+    def test_principles_index_and_agents_md(self):
+        skill = (self.MODE / "SKILL.md").read_text()
+        for principle in ("Smallest change", "Build the lever", "Attack the premise", "Explain the number",
+                          "Never block on the human", "Guard the context window"):
+            self.assertIn(principle, skill, principle)
+        self.assertIn("## Principles", (ROOT / "templates/agent-config/AGENTS.md").read_text())
+
+    def test_playbooks_name_existing_skills(self):
+        skills = {p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md")}
+        text = "\n".join(p.read_text() for p in (self.MODE / "playbooks").glob("*.md"))
+        for name in re.findall(r"\(skill `([a-z-]+)`\)", text):
+            self.assertIn(name, skills, name)

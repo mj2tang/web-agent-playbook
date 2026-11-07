@@ -31,6 +31,17 @@
 - Accessible by default: semantic HTML, labels, visible focus, axe clean, keyboard-only path works.
 - Commits: `T-<id>: <what>` for task work; `contract: ...` and `design: ...` for wave-0 work.
 
+## Principles
+Apply these; name the ones that changed a decision. Full index and the task playbooks: `$web-mode` (skill `web-mode`), after Lauren Tan's pstack.
+- **Say back the goal** and the smallest change that meets it before starting.
+- **Smallest change; subtract before you add.** Delete dead code, props, tokens, and flags first; no layers "for later".
+- **Data shape first.** Props and states, tables and policies, Zod schemas - then logic.
+- **Forks you can observe aren't questions.** Prototype or measure; ask humans only about taste, product, and irreversible actions.
+- **Prove it on the same surface** the problem showed up on; label every claim measured, inferred, or guess.
+- **Build the lever.** Repeated or checkable work gets a script, codemod, or test that a reviewer can rerun.
+- **Attack the premise** after two failed fixes that share an assumption.
+- **No is an acceptable answer**; comments only for a non-obvious why.
+
 ## Allowed without asking
 - Any `make` target and `scripts/gates/*`; `pnpm install` (no new packages), `pnpm run *`, `pnpm exec vitest|playwright test|tsc|eslint`.
 - Local Supabase: `supabase start|stop|status|db reset|test db|migration new|gen types --local|db push --local`.

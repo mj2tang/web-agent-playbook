@@ -37,3 +37,6 @@
 {"prompt": "Rename the variable `x` to `count` in utils.ts", "expect": null}
 {"prompt": "Rate the new pricing page design honestly - what would make it a 10?", "expect": "design-critique"}
 {"prompt": "Before we build it, score this landing page plan on hierarchy, typography and colour", "expect": "design-critique"}
+{"prompt": "$web-mode the notes list jumps when a note is deleted - repro first, then fix", "expect": "web-mode"}
+{"prompt": "What else could break if I change the Button padding token?", "expect": "blast-radius"}
+{"prompt": "This migration looks small but I do not trust it - what could it break?", "expect": "blast-radius"}

@@ -16,7 +16,7 @@ make baselines   # first time: writes screenshot baselines - look at them, then 
 make ui-check
 ```
 
-Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent orchestrator` → "Build tasks/EPIC.md as a team."
+Then, for one task done rigorously: `$web-mode <task>` in Codex or `/web-mode <task>` in Claude Code. It restates the goal, picks a playbook (bug fix, feature, prototype, visual parity, perf, ...), and proves the result on the real page. For an epic: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent orchestrator` → "Build tasks/EPIC.md as a team."
 
 ## What you get
 
@@ -26,6 +26,7 @@ Then: `codex` → `$orchestrate-team build tasks/EPIC.md`, or `claude --agent or
 | **Design skills** | `design-brief` (PRODUCT.md + DESIGN.md), `design-tokens`, `component-spec`, `design-critique` (scored 0-10 per dimension), `responsive-layout`, `accessibility-audit` (WCAG 2.2 AA), `visual-review`, `ux-copy` |
 | **Frontend skills** | `frontend-performance` (Core Web Vitals + JS budgets), `forms-and-validation` (one Zod schema client + server) |
 | **Backend skills** | `system-design-doc`, `api-contract`, `data-modeling`, `supabase-migrations`, `rls-policies`, `supabase-auth`, `edge-functions-vs-rpc`, `security-review` (OWASP), `observability` |
+| **Rigor** (after Lauren Tan's pstack) | `web-mode`: router with 8 playbooks (investigation, bug fix, feature, refactoring, prototype, visual parity, perf issue, team) and a principles index; `blast-radius`: what a change breaks outside the diff, with the safety fact proven by running code |
 | **Team and trust skills** | `orchestrate-team`, `feature-spec`, `worker-protocol`, `merge-train`, `decision-log`, `pause-and-resume`, `prove-it-works`, `encode-lesson`, `interrogate` (cross-model review), `plan-first`, `tdd-loop`, `verify-before-done`, `systematic-debugging`, `web-quality-gates` |
 | **Gates** | `make check` (ESLint, tsc, Vitest) · `make design-check` (deterministic design lint: tokens, focus, semantics, generic-AI patterns; runs Impeccable's detector too when installed) · `make db-check` (migrations from zero, pgTAP, **RLS on every public table**, type drift) · `make ui-check` (Playwright, axe, screenshots at 375/768/1280 against committed baselines) · `make perf` (Lighthouse). Thresholds live in `configs/gates.json`. In plugged-in repos: `scripts/gates/*.sh`, which use your own `package.json` scripts and report **SKIPPED (exit 4), never a silent pass** |
 | **Guardrails** | Guard hook (best-effort command matching, [details](docs/claude-code.md#hooks)) blocks push, deploys, and linked/remote Supabase commands, asking about unknown ones; blocks the service-role key in client code; protects `.env*`, gate budgets, and snapshots; asks before new dependencies, baseline updates, Playwright config edits, and edits to applied migrations |
@@ -114,7 +115,7 @@ Our `design-*` skills set the process (brief → tokens → specs → review); t
 | [Codex](docs/codex.md) | AGENTS.md, skills, sandbox flags verified on 0.167, headless runs, MCP |
 | [Claude Code](docs/claude-code.md) | Subagents, skills, hooks, permissions, plugins |
 | [Skill routing evals](evals/) | One routing case per skill plus near-miss negatives |
-| [Landscape](docs/landscape.md) | What we took from superpowers, ECC, gstack, Impeccable, ui-ux-pro-max, spec-kit, compound-engineering, oh-my-codex, and others |
+| [Landscape](docs/landscape.md) | What we took from pstack, superpowers, ECC, gstack, Impeccable, ui-ux-pro-max, spec-kit, compound-engineering, oh-my-codex, and others |
 | [Resources](resources.md) | Links |
 
 ## Repository layout

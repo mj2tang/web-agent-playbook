@@ -1,9 +1,10 @@
 # Landscape: what we took from the most popular agent playbooks
 
-Star counts from the GitHub API on 2026-11-08. All content here is original; these projects shaped the ideas.
+Star counts from the GitHub API on 2026-11-08 (pstack: the `cursor/plugins` repo it lives in). All content here is original; these projects shaped the ideas.
 
 | Repo | Stars | Its core idea | What this playbook took |
 |---|---|---|---|
+| [Lauren Tan's pstack](https://github.com/cursor/plugins/tree/main/pstack) (in `cursor/plugins`, 15.7k; ports such as `michael-denyer/pstack-claude` 4.1k, `backnotprop/pstack` 3.8k) | Go deep on one agent until you trust it, then parallelise. `poteto-mode` routes each task to one of 23 playbooks whose steps are copied into the todo list, with an inline index of 24 one-line principles; `blast-radius`, `benchmark-checklist`, `interrogate`, `show-me-your-work`, `create-verification-skill` (feature map) | The ML sibling already had `prove-it-works`, `encode-lesson`, `interrogate`, the decision trail, the trust ladder, and the pipeline map. New here: `web-mode` (8 web playbooks, steps copied verbatim, skips with a reason, principles index, say-back-the-goal, evidence labels, observable forks settled by prototypes), `blast-radius` for web dependencies, "explain the number" in `frontend-performance`, and fresh workers with consolidated scope in `orchestrate-team` |
 | [obra/superpowers](https://github.com/obra/superpowers) | 314k | Mandatory gated workflow (brainstorm → plan → TDD → review → finish), bootstrap skill injected at session start, skills tested with an eval harness | Plan-first and TDD skills, "evidence before done", a fresh reviewer per branch, routing evals for every skill |
 | [affaan-m/ECC](https://github.com/affaan-m/ECC) | 299k | Harness optimisation: hook profiles, learned "instincts" with confidence scores, a memory vault, a security scanner, context budgets | `doctor`; hook profiles stay simple (guardrails on or off); learning goes to tests first, then `docs/solutions/` |
 | [anthropics/skills](https://github.com/anthropics/skills) | 189k | The Agent Skills format; `frontend-design` | SKILL.md format; recommended alongside our design skills |

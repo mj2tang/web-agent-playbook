@@ -1,0 +1,3 @@
+# Codex: run web-mode only when asked for by name ($web-mode).
+policy:
+  allow_implicit_invocation: false

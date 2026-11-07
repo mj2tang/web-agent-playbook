@@ -25,7 +25,8 @@ Throughput comes from trust, not from the number of agents. Earn trust in one wo
 6. **Dispatch:** for each task in the wave, mark `in_progress`, log a `dispatch` row, and launch the matching worker in the background (Claude Code: the subagent; Codex: spawn the custom agent **by name**, e.g. `frontend-worker` - Codex never spawns custom agents unless asked) with:
    > Task file: `tasks/T-012-<slug>.md`. Branch: `task/T-012-<slug>`. Follow worker-protocol and prove-it-works. Return the summary block only.
 7. **Collect:** as each worker returns, check its EVIDENCE line exists, set `review`, and launch the `supervisor` on its branch. Add `security-reviewer` for auth, RLS, server actions, or secrets; add `a11y-reviewer` for any UI change.
-8. **Decide:** every reviewer `APPROVE` → queue for merge. `CHANGES_REQUESTED` → relaunch the worker with the findings (max 2 rounds; then `blocked`, log it, and ask the user). A gate reported `SKIPPED` is not an approval.
+8. **Decide:** every reviewer `APPROVE` → queue for merge. `CHANGES_REQUESTED` → start a **fresh** worker with the consolidated scope: the original task file, every later instruction, the previous worker's report, the reviewer findings, and the branch (max 2 rounds; then `blocked`, log it, and ask the user). Resume an existing worker only when the work needs state that lives only there (an uncommitted checkout, a running dev server). A gate reported `SKIPPED` is not an approval.
+   **You own every worker's output:** read the diff and evidence yourself and write your own summary; never pass a worker's "done" through unread.
 9. **Merge** with `merge-train`, one branch at a time.
 10. **Next wave:** recompute trust (step 5) and repeat from step 4.
 11. **Report:** exit-condition state, a table of tasks (status, branch, evidence, screenshots), the trust level, and decisions needed.
